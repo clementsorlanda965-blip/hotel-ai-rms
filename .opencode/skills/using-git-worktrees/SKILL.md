@@ -98,6 +98,15 @@ Global directories (`~/.config/superpowers/worktrees/`) need no verification.
 
 #### Create the Worktree
 
+**Confirm before creating:**
+```
+Will create worktree at: <path>
+Branch name: <BRANCH_NAME>
+Type 'worktree' to confirm.
+```
+
+Wait for exact confirmation before executing.
+
 ```bash
 project=$(basename "$(git rev-parse --show-toplevel)")
 
