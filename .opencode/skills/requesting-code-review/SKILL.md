@@ -23,30 +23,47 @@ Dispatch a code reviewer subagent to catch issues before they cascade. The revie
 
 ## How to Request
 
-**1. Get git SHAs:**
+**流程概述:** 获取范围→确认→派发→接收→处理→确认
+
+| 步骤 | 输入 | 工具/操作 | 输出 |
+|------|------|----------|------|
+| 1.获取SHAs | git log | `git rev-parse HEAD~1` | BASE_SHA, HEAD_SHA |
+| 2.确认范围 | SHAs | `git diff --stat {BASE}..{HEAD}` | 文件数/行数, 用户确认 |
+| 3.派发审查 | 范围+模板 | Task tool | 审查结果 |
+| 4.接收汇报 | 结果 | 格式化摘要 | 用户裁决方案 |
+| 5.处理反馈 | 裁决 | Edit/Bash | 修复commit |
+| 6.最终确认 | 修复状态 | 摘要汇报 | 用户决定 |
+
+---
+
+**Step 1 — 获取git SHAs:**
 ```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # or origin/main
-HEAD_SHA=$(git rev-parse HEAD)
+# 获取base和head
+BASE_SHA=$(git rev-parse HEAD~1)   # 上一commit，或 origin/main
+HEAD_SHA=$(git rev-parse HEAD)      # 当前HEAD
+
+# 查看diff统计（用于Step 2确认范围）
+git diff --stat ${BASE_SHA}..${HEAD_SHA}
 ```
 
-**2. Checkpoint — confirm review scope:**
-- Present: "即将审查 BASE..HEAD (共X个文件, Y行改动)。审查范围是否正确？"
-- User can: confirm / narrow scope / change base
-- Wait for user decision before dispatching
+**Step 2 — 确认审查范围（检查点）：**
+- 读取 `git diff --stat` 输出
+- 向用户呈现: "即将审查 ${BASE_SHA:0:7}..${HEAD_SHA:0:7} (共X个文件, Y行改动)。审查范围是否正确？"
+- 用户可: 确认 / 缩小范围 / 更换base
+- 等待用户决策后再派发
 
-**3. Dispatch code reviewer subagent:**
+**Step 3 — 派发审查子代理:**
+1. 打开 `code-reviewer.md` 模板
+2. 填充4个占位符:
+   - `{DESCRIPTION}` — 实现概要
+   - `{PLAN_OR_REQUIREMENTS}` — 需求/计划路径或文本
+   - `{BASE_SHA}` — 起始commit
+   - `{HEAD_SHA}` — 结束commit
+3. 使用 Task tool (`general-purpose`类型) 派发
 
-Use Task tool with `general-purpose` type, fill template at `code-reviewer.md`
-
-**Placeholders:**
-- `{DESCRIPTION}` - Brief summary of what you built
-- `{PLAN_OR_REQUIREMENTS}` - What it should do
-- `{BASE_SHA}` - Starting commit
-- `{HEAD_SHA}` - Ending commit
-
-**4. Receive results — checkpoint:**
-
-Present reviewer output to user:
+**Step 4 — 接收审查结果（检查点）:**
+- 读取子代理返回的 Strengths / Issues / Assessment
+- 格式化呈现给用户:
 ```
 审查结果摘要：
   Critical: X
@@ -54,17 +71,17 @@ Present reviewer output to user:
   Minor: Z
   评估结论: [Ready to merge / With fixes / No]
 ```
-Ask user: "是否按以下方案处理？修复Critical→修复Important→Minor暂缓"
+- 询问用户: "是否按以下方案处理？修复Critical → 修复Important → Minor暂缓"
 
-**5. Act on feedback:**
-- Fix Critical issues immediately
-- Fix Important issues before proceeding
-- Note Minor issues for later
-- Push back if reviewer is wrong (with reasoning)
+**Step 5 — 处理反馈:**
+- Critical: 立即修复（使用Edit工具修改代码，Bash运行测试）
+- Important: 在继续前修复
+- Minor: 记录待后续处理
+- 如有争议: 用技术理由反驳，展示代码或测试证明
 
-**6. After fixes — final checkpoint:**
-- Present fix summary to user
-- Ask: "修复完成。是否需再次审查或直接继续？"
+**Step 6 — 修复后确认（最终检查点）:**
+- 生成修复摘要（改了哪些文件、解决了哪些问题）
+- 询问用户: "修复完成。是否需再次审查或直接继续？"
 
 ## Example
 
@@ -73,15 +90,23 @@ Ask user: "是否按以下方案处理？修复Critical→修复Important→Mino
 
 You: Let me request code review before proceeding.
 
+// Step 1: Get SHAs
 BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
 HEAD_SHA=$(git rev-parse HEAD)
+// Step 2: Get diff stats
+git diff --stat ${BASE_SHA}..${HEAD_SHA}
 
-[Dispatch code reviewer subagent]
+You: "即将审查 a7981ec..3df7661 (共4个文件, 86行改动)。审查范围是否正确？"
+User: "确认"
+
+// Step 3: Dispatch
+[Task tool: general-purpose]
   DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types
-  PLAN_OR_REQUIREMENTS: Task 2 from docs/superpowers/plans/deployment-plan.md
+  PLAN_OR_REQUIREMENTS: Task 2 from deployment-plan.md
   BASE_SHA: a7981ec
   HEAD_SHA: 3df7661
 
+// Step 4: Receive results
 [Subagent returns]:
   Strengths: Clean architecture, real tests
   Issues:
@@ -89,7 +114,14 @@ HEAD_SHA=$(git rev-parse HEAD)
     Minor: Magic number (100) for reporting interval
   Assessment: Ready to proceed
 
-You: [Fix progress indicators]
+You: "审查结果：Critical=0, Important=1, Minor=1。建议修复Important后继续。同意？"
+User: "同意"
+
+// Step 5: Fix Important issue
+// Step 6: Confirm
+You: "已修复进度提示。是否需再次审查或继续？"
+User: "继续"
+
 [Continue to Task 3]
 ```
 
