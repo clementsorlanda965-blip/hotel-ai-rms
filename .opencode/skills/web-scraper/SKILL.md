@@ -125,8 +125,20 @@ web-scraper → outputs/competitor_data.json → hotel-docs (skill) → 竞品�
 web-scraper → outputs/market_trends.json → ralph-cycle (skill) → 自动化周报流水线
 ```
 
-## 降级策略
-Firecrawl API 不可用时，使用 Python 原生方案：
+## 异常处理与降级策略
+
+| 场景 | 表现 | 处理方式 |
+|------|------|---------|
+| Firecrawl API 不可用 | 请求超时 / 401 | 降级到 `requests + BeautifulSoup` 原生方案 |
+| API Key 配额耗尽 (500次/月) | 返回 429 | 提示用户配置 API Key，使用本地缓存度过配额周期 |
+| 目标网站反爬拦截 | 返回 403 / 验证码页面 | 增加 User-Agent 伪装 + 随机延迟 (2-5s)，仍失败则报"目标站需人工处理" |
+| 批量爬取死循环 | 同 URL 反复出现 | 内置 URL 去重集合，同页不重复爬取 |
+| JSON 解析失败 | 返回非 JSON 格式 | 转为 Markdown 原始输出，附加结构解析建议 |
+| 搜索结果为空 | 返回空列表 | 建议更换关键词 / 检查网络 / 确认搜索引擎是否可用 |
+| Excel 写入失败 | openpyxl 报错 | 降级到 CSV 输出 (`outputs/<name>.csv`) |
+| 数据编码乱码 | 中文显示为 `\uXXXX` | 强制 `encoding="utf-8"` 写入，确保 `ensure_ascii=False` |
+
+### Firecrawl API 不可用时原生降级方案
 ```python
 import urllib.request
 from bs4 import BeautifulSoup  # pip install beautifulsoup4
