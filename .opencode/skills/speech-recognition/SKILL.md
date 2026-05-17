@@ -88,16 +88,29 @@ result = model.generate(input="outputs/audio/voiceover.mp3")
 音频 → speech-recognition → outputs/subtitles/subtitles.srt → video-factory合成
 ```
 
+## 异常与边界条件
+
+| 场景 | 触发条件 | 处理动作 |
+|------|---------|---------|
+| 输入文件不存在 | 路径无效或文件缺失 | 提示用户检查路径，退出并输出错误信息 |
+| 格式不支持 | 非音频格式/编码异常 | 尝试用 ffmpeg 转码为 WAV，失败则报错退出 |
+| ffmpeg 缺失 | 系统未安装 ffmpeg | 自动切换 torchaudio 加载，若 torchaudio 也失败则提示用户安装 |
+| 音频为空/损坏 | 文件存在但无法解码 | 返回"音频内容为空，请检查文件"，终止处理 |
+| 模型下载失败 | 网络/缓存问题导致模型加载中断 | 自动切换 openai-whisper small 模型降级 |
+| GPU 显存不足 | CUDA OOM | 自动切换 CPU 模式重试，速度降低但功能正常 |
+| 长音频OOM | >30分钟音频内存溢出 | 自动分段（每段10分钟），逐段识别后合并 |
+| 批量中途失败 | 批量处理中某一文件出错 | 跳过该文件，记录错误日志，继续处理剩余文件 |
+
 ## 降级策略
-FunASR 模型下载失败时，使用 `openai-whisper`（已随 FunASR 安装）作为降级方案：
+FunASR 模型下载失败时，自动切换至 `openai-whisper`（已随 FunASR 安装）：
 ```python
 import whisper
 model = whisper.load_model("small")
 result = model.transcribe("audio.mp3")
 ```
-
-## 注意事项
-1. 音频质量决定识别率：建议 16kHz、无背景噪音
-2. 首次使用会自动下载模型（~1GB），存放于本地缓存
-3. 长音频（>30分钟）自动分段识别，避免内存溢出
-4. 生成的字幕自动做中文标点归一化（全角统一）
+GPU 显存不足时自动回退 CPU 模式：
+```python
+import whisper
+model = whisper.load_model("small", device="cpu")
+result = model.transcribe("audio.mp3")
+```
