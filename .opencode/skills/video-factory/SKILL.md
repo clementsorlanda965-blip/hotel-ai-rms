@@ -278,3 +278,15 @@ for c in clips: c.close()
 - 字幕按标点智能断句，不用机械切割
 - GPU不可用时自动降级为文字卡片
 - 所有环节通过 output/ 目录下的JSON文件通信
+
+## 异常处理
+
+| 异常场景 | 表现 | 处理方式 |
+|---------|------|---------|
+| diffusers下载失败 | `OSError: Can't load tokenizer` | 捕获异常 → 自动降级为CPU文字卡片，提示"SD模型下载失败，已切换文字卡片模式" |
+| edge-tts网络不可用 | `ConnectionError: timed out` | 捕获异常 → 使用 `gTTS` 备用引擎（`pip install gtts`），提示"网络TTS不可用，已切换gTTS离线模式" |
+| FFmpeg未安装 | `FileNotFoundError: ffmpeg` | 提示"FFmpeg未安装，请执行：`winget install ffmpeg` 或 `choco install ffmpeg`" |
+| 磁盘空间不足 | `OSError: No space left` | 提示清理output目录，建议保留>500MB空闲空间 |
+| script.json缺失 | `FileNotFoundError` | 自动生成含3个占位镜头的默认脚本，提示"脚本文件未找到，已自动创建默认脚本" |
+| moviepy导入失败 | `ModuleNotFoundError: moviepy` | 提示"请执行：`pip install moviepy[all]`" |
+| 配音文件生成失败 | 音频为0字节或不存在 | 跳过配音环节，仅输出画面+字幕视频，提示"配音生成失败，已切换静音模式" |

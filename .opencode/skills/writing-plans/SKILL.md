@@ -125,6 +125,20 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - Exact commands with expected output
 - DRY, YAGNI, TDD, frequent commits
 
+## 异常处理
+
+编写和执行计划过程中可能遇到以下异常：
+
+| 异常场景 | 处理方式 |
+|---------|---------|
+| 用户拒绝计划范围 | 回到 Scope Check 重新界定范围，或拆分为更小子系统 |
+| 测试框架不存在 | 检测 `pytest`/`jest`/`vitest` 可用性，缺失则提示安装命令 |
+| 目标文件路径不存在 | 自动创建目录（`os.makedirs` / `mkdir -p`），路径无效则报错并建议 |
+| Git提交冲突 | 提示 `git stash` 暂存变更，或开新分支重试 |
+| 用户中途要求变更范围 | 暂停当前任务，回到 File Structure 修订计划，标记已完成步骤 |
+| 依赖安装失败 | 提示具体错误和备选安装方式（pip/npm/pnpm），建议虚拟环境 |
+| 计划文件保存路径冲突 | 追加时间戳后缀（`<name>-v2.md`），保留两份版本 |
+
 ## Self-Review
 
 After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
