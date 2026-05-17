@@ -1,4 +1,4 @@
-timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+﻿timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-05-17T08:56	baseline	presentation	-	43.8	baseline	-	初始评估	dry_run
 2026-05-17T08:56	baseline	mind-map	-	48.1	baseline	-	初始评估	dry_run
 2026-05-17T08:56	baseline	document-excel	-	43.6	baseline	-	初始评估	dry_run
@@ -8,3 +8,18 @@ timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
 2026-05-17T08:56	baseline	systematic-debugging	-	83.4	baseline	-	初始评估	dry_run
 2026-05-17T08:56	baseline	code-refactor	-	38.1	baseline	-	初始评估	dry_run
 2026-05-17T08:56	baseline	requesting-code-review	-	68.9	baseline	-	初始评估	dry_run
+2026-05-17T09:03	baseline	frontend-design	-	38.8	baseline	-	初始评估	dry_run
+2026-05-17T09:15	96a614b	frontend-design	38.8	53.2	keep	指令具体性+边界条件覆盖	流程补充参数规格+异常处理3条fallback	dry_run
+2026-05-17T09:02	14e26bf	prompt-optimizer	38.1	49.0	keep	边界条件覆盖	补充4条异常处理规则，每步骤明确输入输出	dry_run
+2026-05-17T09:10	baseline	ralph-cycle	-	30.3	baseline	-	初始评估	dry_run
+2026-05-17T09:10	14e26bf	ralph-cycle	30.3	34.6	keep	检查点设计	新增步骤1和步骤5的用户确认检查点	dry_run
+2026-05-17T09:05	0ff837e	prompt-optimizer	49.0	58.8	keep	边界条件覆盖	补充6种边界情况处理，提升鲁棒性	dry_run
+2026-05-17T09:12	6944b24	ralph-cycle	34.6	41.6	keep	边界条件覆盖	补充4种异常场景：测试反复失败/用户拒绝/前置阻塞/Git冲突	dry_run2026-05-17T09:08	92d0cbe	prompt-optimizer	58.8	62.8	keep	检查点设计	添加翻译/大幅改写/格式变更的确认点	dry_run
+2026-05-17T09:18	f74fb9f	frontend-design	53.2	55.3	keep	检查点设计	编码前增加用户确认环节	dry_run
+2026-05-17T09:15	6d35893	ralph-cycle	41.6	47.6	keep	指令具体性	为各步骤补充具体工具名和命令，精简格式控制体积	dry_run
+2026-05-17T09:18	baseline	hotel-docs	-	36.6	baseline	-	初始评估	dry_run
+2026-05-17T09:18	76942e1	hotel-docs	36.6	44.1	keep	检查点设计	新增生成后确认/迭代调整流程和异常处理	dry_run
+2026-05-17T09:20	157c84a	document-excel	43.6	52.3	keep	工作流清晰度	功能列表重构为5步有序流程	dry_run
+2026-05-17T09:12	157c84a	code-refactor	38.1	48.9	keep	工作流清晰度	展开为3步流程，每步指定工具和具体操作	dry_run
+2026-05-17T09:20	3529250	hotel-docs	44.1	45.6	keep	资源整合度	添加 test-prompts.json 资源引用	dry_run
+2026-05-17T09:23	6235cd4	hotel-docs	45.6	50.6	keep	边界条件覆盖	扩展异常处理场景并精简格式控制体积	dry_run
