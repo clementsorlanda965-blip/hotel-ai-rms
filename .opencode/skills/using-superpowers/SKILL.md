@@ -41,6 +41,17 @@ Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-too
 
 # Using Skills
 
+## 用户确认检查点
+
+加载或执行技能前必须暂停确认：
+
+| 位置 | 确认内容 |
+|------|---------|
+| 发现匹配 skill 后 | 向用户说明："发现适用 skill：{skill名}（{简介}）。确认加载？" |
+| 多个 skill 匹配时 | 列出候选 list，请用户选择优先级 |
+| 执行关键操作前 | 如生成文件/修改代码，先说明操作内容和影响范围 |
+| 用户说"不需要" | 立即停止，不加载任何 skill |
+
 ## The Rule
 
 **Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
