@@ -666,6 +666,16 @@ How future Claude finds your skill:
 
 **Optimize for this flow** - put searchable terms early and often.
 
+## Resources
+
+| 资源 | 用途 |
+|------|------|
+| `test-prompts.json` | 测试用例（新建/编辑/验证三类场景），用于维度8实测评估 |
+| `testing-skills-with-subagents.md` | 完整测试方法论（压力场景/漏洞修补/元测试） |
+| `graphviz-conventions.dot` | 流程图样式规则 |
+| `persuasion-principles.md` | 反理性化心理学原理（Cialdini框架） |
+| `render-graphs.js` | 流程图→SVG 渲染工具 |
+
 ## The Bottom Line
 
 **Creating skills IS TDD for process documentation.**
