@@ -83,6 +83,15 @@ After all tasks complete and verified:
 3. Ask user for guidance before proceeding
 4. Wait for explicit user decision
 
+## Error Recovery
+
+**Plan file not found:** "指定路径未找到计划文件。[路径]。请确认文件路径是否正确。"
+**Merge conflict during git apply:** "Git合并冲突，需用户手动解决后继续。暂停执行。"
+**No test framework detected:** 跳过验证步骤并通知用户，询问是否手动验证。
+**Task timeout (>5 min):** 报告当前进度，询问继续等待还是跳过。
+**Mid-task interruption recovery:** 检查已完成步骤标记，从断点处继续而非重新开始。
+**Permission denied on install:** 提示用户手动执行安装命令，等待确认后继续。
+
 **Ask for clarification rather than guessing.**
 
 ## When to Revisit Earlier Steps
