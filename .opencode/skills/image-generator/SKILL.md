@@ -59,15 +59,28 @@ metadata:
 ### 3. ComfyUI 调用方式
 ComfyUI 位于 `tools/ComfyUI/`，通过 API 调用（引用检查点2）：
 ```python
-import json, urllib.request
+import json, urllib.request, os, time
 
-def comfy_generate(prompt, width=512, height=912):
+def comfy_generate(prompt_text, width=512, height=912,
+                   workflow_path="tools/ComfyUI/workflows/default.json",
+                   output_dir="outputs/images"):
     url = "http://127.0.0.1:8188/prompt"
-    payload = {
-        "prompt": {},  # 使用默认工作流
-        "client_id": "opencode"
-    }
-    # 注入 prompt 到工作流... （具体节点因工作流而异）
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 加载工作流并注入 prompt
+    with open(workflow_path, "r") as f:
+        workflow = json.load(f)
+    for node_id, node in workflow.items():
+        if node.get("class_type") == "CLIPTextEncode":
+            node["inputs"]["text"] = prompt_text
+        if node.get("class_type") == "EmptyLatentImage":
+            node["inputs"]["width"] = width
+            node["inputs"]["height"] = height
+
+    payload = {"prompt": workflow, "client_id": "opencode"}
+    req = urllib.request.Request(url, json.dumps(payload).encode())
+    response = urllib.request.urlopen(req, timeout=60)
+    return json.loads(response.read())
 ```
 
 首次使用需手动启动 ComfyUI：
@@ -78,16 +91,32 @@ python tools/ComfyUI/main.py
 
 ### 4. PIL 降级方案（CPU可用）
 ```python
+import os
 from PIL import Image, ImageDraw, ImageFont
 
-def pil_poster(title, subtitle="", size=(1080, 1920)):
+def pil_poster(title, subtitle="", size=(1080, 1920),
+               output_path="outputs/images/poster.png"):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     img = Image.new("RGB", size, (14, 14, 18))  # 深色背景
     draw = ImageDraw.Draw(img)
-    font_title = ImageFont.truetype("simhei.ttf", 80)
-    font_sub = ImageFont.truetype("simhei.ttf", 36)
+
+    # 字体自动降级：simhei → msyh → arial → 默认
+    font = None
+    for font_name in ["simhei.ttf", "msyh.ttc", "arial.ttf"]:
+        try:
+            font_title = ImageFont.truetype(font_name, 80)
+            font_sub = ImageFont.truetype(font_name, 36)
+            break
+        except IOError:
+            continue
+    if font_title is None:
+        font_title = ImageFont.load_default()
+        font_sub = ImageFont.load_default()
+
     draw.text((60, 600), title, fill=(255,255,255), font=font_title)
     draw.text((60, 720), subtitle, fill=(180,180,180), font=font_sub)
-    img.save("outputs/images/poster.png")
+    img.save(output_path)
+    return output_path
 ```
 
 ### 5. 与 video-factory 集成
