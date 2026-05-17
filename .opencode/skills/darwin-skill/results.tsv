@@ -1,0 +1,10 @@
+timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-05-17T08:56	baseline	presentation	-	43.8	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	mind-map	-	48.1	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	document-excel	-	43.6	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	document-word	-	46.1	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	document-pdf	-	45.1	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	test-driven-development	-	83.9	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	systematic-debugging	-	83.4	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	code-refactor	-	38.1	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	requesting-code-review	-	68.9	baseline	-	初始评估	dry_run
