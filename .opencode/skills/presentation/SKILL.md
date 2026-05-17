@@ -39,6 +39,27 @@ metadata:
 
 **优先输出PPTX格式。** 用户要"PPT""课件""培训材料"时，默认使用 python-pptx 生成 .pptx 文件。
 
+**输出路径规则：** 文件保存到 `outputs/pptx/`（PPTX）或 `outputs/html/`（HTML），文件名 `{主题}_v{版本}.pptx`
+
+## 实现指引
+
+**PPTX 生成 (python-pptx)：**
+```python
+from pptx import Presentation
+from pptx.util import Inches, Pt, Emu
+prs = Presentation()
+prs.slide_width  = Inches(13.333)  # 16:9
+prs.slide_height = Inches(7.5)
+# 添加标题页
+slide = prs.slides.add_slide(prs.slide_layouts[6])  # 空白版式
+slide.shapes.title.text = "中文标题"
+prs.save("outputs/pptx/主题.pptx")
+```
+
+**HTML 输出：** 生成独立 HTML 文件，CSS 内联，无外部依赖。保存到 `outputs/html/`
+
+**品牌色使用格式：** 取企业品牌色值，直接写入 PPTX/HTML 的主题色定义中
+
 ## 异常处理
 
 - python-pptx 未安装 → 自动 `pip install python-pptx`，失败则降级 HTML 输出
