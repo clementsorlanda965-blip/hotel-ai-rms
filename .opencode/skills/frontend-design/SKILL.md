@@ -21,8 +21,9 @@ metadata:
 1. **理解需求** — 确认4项：页面类型（落地页/仪表盘/后台/官网）、目标用户、主色调、参考风格（极简/玻璃态/粗野主义）
 2. **设计布局** — 文字描述导航/Hero区(标题+CTA按钮)/内容区(卡片网格)/底部
 3. **配色字体** — 主色1+辅色1+中性色2标16进制值；字体Inter/系统无衬线
-4. **生成代码** — 单页HTML用Tailwind CDN；React default export+CSS modules；图表用ECharts
-5. **输出** — HTML存outputs/html/并自动打开；组件返回代码块
+4. **确认设计** — 展示布局/配色方案给用户，让用户确认后再编码
+5. **生成代码** — 单页HTML用Tailwind CDN；React default export+CSS modules；图表用ECharts
+6. **输出** — HTML存outputs/html/并自动打开；组件返回代码块
 
 ## 异常处理
 - **需求模糊** → 默认轻量单页HTML（Tailwind CDN，白底黑字）
