@@ -35,10 +35,13 @@
 2026-05-17T09:30	1b2f2fd	document-pdf	58.7	62.2	keep	检查点设计	6步流程嵌入4个用户确认点	dry_run
 2026-05-17T09:26	faf18db	document-word	46.1	52.0	keep	工作流清晰度	新增6步有序工作流，每步注明输入/工具/输出	dry_run
 2026-05-17T09:28	baseline	skill-manager	-	50.6	baseline	-	初始评估	dry_run
-2026-05-17T09:29	ea321a8	skill-manager	50.6	57.8	keep	边界条件覆盖	补充4类场景fallback：创建/搜索/安装/优化的异常处理	dry_run
-2026-05-17T09:31	886ed25	skill-manager	57.8	64.4	keep	检查点设计	4项操作前增加用户确认环节	dry_run
+2026-05-17T09:46	da9e1c9	skill-manager	50.6	57.1	keep	边界条件覆盖	7条紧凑边界场景：skills.sh不可达/目录冲突/npx失败等	dry_run
+2026-05-17T09:47	b865c88	skill-manager	57.1	62.6	keep	检查点设计	4操作嵌入紧凑确认：展示→确认→执行	dry_run
 2026-05-17T09:34	5fd640b	document-word	52.0	55.5	keep	检查点设计	新增3处用户确认检查点，精简体积至145%	dry_run
 2026-05-17T09:34	f86199c	document-word	55.5	60.5	keep	边界条件覆盖	新增5条异常处理场景，精简至98%	dry_run
 2026-05-17T09:48	779716e	mind-map	48.1	51.5	keep	工作流清晰度	5步工作流细化输入/工具/输出，增加图表选择决策规则	dry_run
 2026-05-17T09:48	ffcaada	mind-map	51.5	55.5	keep	检查点设计	Step1/2/5新增3处用户确认检查点	dry_run
 2026-05-17T09:48	7a2d909	mind-map	55.5	60.5	keep	边界条件覆盖	新增6条异常处理，精简至117%	dry_run
+2026-05-17T09:49	baseline	hotel-bi	-	57.6	baseline	-	初始评估	dry_run
+2026-05-17T09:50	8f7db5c	hotel-bi	57.6	68.6	keep	检查点设计+工作流清晰度	6步工作流嵌入3处用户确认 d ry_run
+2026-05-17T09:51	ac6705d	hotel-bi	68.6	73.8	keep	边界条件覆盖	6条紧凑异常场景，体积控制在149%	dry_run
