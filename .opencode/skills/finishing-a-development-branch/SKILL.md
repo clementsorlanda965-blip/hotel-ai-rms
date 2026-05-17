@@ -96,6 +96,15 @@ Which option?
 
 #### Option 1: Merge Locally
 
+**Confirm before merge:**
+```
+Will merge <feature-branch> → <base-branch>
+Review changes: git log --oneline <base-branch>..<feature-branch>
+Type 'merge' to confirm.
+```
+
+Wait for exact confirmation.
+
 ```bash
 # Get main repo root for CWD safety
 MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
@@ -119,6 +128,15 @@ git branch -d <feature-branch>
 ```
 
 #### Option 2: Push and Create PR
+
+**Confirm before PR:**
+```
+Branch: <feature-branch>
+Destination: origin → <base-branch>
+Show user the commit list and ask: "Proceed with PR? (y/n)"
+```
+
+Wait for confirmation before pushing.
 
 ```bash
 # Push branch
