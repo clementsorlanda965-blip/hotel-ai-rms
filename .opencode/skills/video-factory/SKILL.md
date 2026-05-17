@@ -33,6 +33,17 @@ metadata:
 | 配图效果 | 生成关键帧后 | 展示首帧缩略图，确认风格是否满意 | 使用文字卡片方案 |
 | 开始合成 | 所有资产就绪 | 汇总配音时长/画面数/BGM风格，用户确认后合成 | 用户在开始时跳过确认 |
 
+## 流程速查
+
+| 环节 | 输入 | 工具/代码 | 输出 | 检查点 |
+|------|------|----------|------|-------|
+| 选题+脚本 | 用户主题 → 3角度 → 用户选择 | LLM脚本生成 | `output/script.json` | [确认]选题方向+脚本内容 |
+| AI画面 | `script.json` | SD-Turbo / PIL文字卡 | `output/frames/scene_XX.png` | [确认]配图效果 |
+| 配音+字幕 | `script.json`旁白文本 | edge-tts / gTTS | `output/voiceover.mp3` + `output/subtitles.json` | — |
+| SRT字幕 | `subtitles.json` | 格式转换 | `output/subtitles.srt` | — |
+| BGM | `script.json`情绪字段 | 正弦波合成 | `output/bgm.wav` | — |
+| 合成 | 画面+配音+字幕+BGM | moviepy | `output/final.mp4` | [确认]开始合成 |
+
 ## 环节一：选题 + 脚本
 
 用户给主题后，推荐3个爆款角度。用户选一个后，生成 `output/script.json`：
