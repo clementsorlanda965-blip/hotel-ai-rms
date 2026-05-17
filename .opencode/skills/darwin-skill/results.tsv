@@ -97,3 +97,21 @@
 2026-05-17T12:03	31dc728	video-factory	93.6	95.1	keep	工作流清晰度	新增6步流程速查表(输入/工具/输出/检查点)	eval
 2026-05-17T12:03	31dc728	writing-plans	93.6	96.1	keep	资源整合度+内容中文化	全篇中文翻译+test-prompts引用+集成指引表	eval
 2026-05-17T11:22	6af1725	verification-before-completion	98.1	98.8	keep	检查点设计	Gate Function新增Step0用户确认环节	dry_run
+2026-05-17T11:25	41f98ee	impeccable	96.8	97.5	keep	检查点设计	Setup新增Step3用户确认环节(确认后执行)	dry_run
+
+2026-05-17T11:09	9ecd009	finishing-a-development-branch	90.2	91.7	keep	资源整合度	新增test-prompts.json引用+关联skill链接	dry_run
+
+2026-05-17T11:09	fe078f0	finishing-a-development-branch	91.7	93.1	keep	检查点设计	新增合并前确认+PR前确认检查点	dry_run
+
+2026-05-17T11:09	add4ae4	writing-skills	90.9	93.0	keep	检查点设计	RED/GREEN/REFACTOR各阶段新增用户确认检查点	dry_run
+
+2026-05-17T11:09	fcf3735	writing-skills	93.0	93.5	keep	资源整合度	新增test-prompts.json+资源引用表	dry_run
+
+2026-05-17T11:09	0cb7247	using-git-worktrees	91.3	92.3	keep	资源整合度	新增test-prompts.json+关联skill引用	dry_run
+
+2026-05-17T11:09	a7de6d9	using-git-worktrees	92.3	93.0	keep	检查点设计	新增创建worktree前确认检查点	dry_run
+2026-05-17T11:28	6c1f618	subagent-driven-development	98.7	99.4	keep	检查点设计	任务提取后新增用户确认环节(展示任务列表→等待确认→再派发)	dry_run
+2026-05-17T11:11	cd497a3	receiving-code-review	88.8	90.8	keep	边界条件覆盖	新增4种边界场景(矛盾反馈/长列表/冲突reviewer/reviewer不可达)	dry_run
+2026-05-17T11:11	cd497a3	brainstorming	89.8	92.8	keep	边界条件覆盖	新增4种边界场景(跳过设计/需求变动/全否定/范围不明)	dry_run
+2026-05-17T11:13	395d3c7	receiving-code-review	90.8	92.8	keep	资源整合度	新增资源速查表(test-prompts.json+2关联skill)	dry_run
+2026-05-17T11:13	395d3c7	brainstorming	92.8	94.3	keep	指令具体性	补充多选提问/范围分解具体示例	dry_run
