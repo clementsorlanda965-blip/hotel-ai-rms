@@ -352,6 +352,17 @@ Before marking work complete:
 
 Can't check all boxes? You skipped TDD. Start over.
 
+## 边界场景处理
+
+| 场景 | 处理方式 |
+|------|---------|
+| 测试框架未安装/未配置 | 先 `npm init` 或安装 jest/ vitest 等，再开始 RED |
+| 代码无法测试（紧耦合） | 先重构接口使其可测试（依赖注入），再写测试 |
+| 用户要求跳过测试 | 说明 TDD 规则，坚持先写测试；如用户坚持，记录风险 |
+| 测试运行超时 | 拆分为更小粒度的测试，减少每个测试的依赖 |
+| 已有代码无测试 | 为现有代码加特性时，先为旧行为写测试再写新功能 |
+| 多文件/模块依赖 | 先测独立单元，再测集成；mock 外部依赖 |
+
 ## When Stuck
 
 | Problem | Solution |
