@@ -26,6 +26,8 @@ If you haven't run the verification command in this message, you cannot claim it
 ```
 BEFORE claiming any status or expressing satisfaction:
 
+0. CONFIRM: Present the planned verification to the user ("I will run [command] to verify [claim]. Confirm?")
+   - Wait for explicit user consent before proceeding
 1. IDENTIFY: What command proves this claim?
 2. RUN: Execute the FULL command (fresh, complete)
 3. READ: Full output, check exit code, count failures
@@ -34,7 +36,7 @@ BEFORE claiming any status or expressing satisfaction:
    - If YES: State claim WITH evidence
 5. ONLY THEN: Make the claim
 
-Skip any step = lying, not verifying
+Skip any step (including 0) = lying, not verifying
 ```
 
 ## Common Failures
