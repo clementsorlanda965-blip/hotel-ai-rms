@@ -224,6 +224,18 @@ browser_session_replay(
   → autopilot_disable
 ```
 
+## 异常处理与降级策略
+
+| 场景 | 表现 | 处理方式 |
+|------|------|---------|
+| memory_store/MCP 断开 | `Error: MCP not connected` | 静默降级到本地 JSON 文件缓存，等待重连后同步 |
+| Worker 派发参数无效 | `hooks_worker-dispatch 无响应` | 输出错误参数列表 + 合规示例，要求用户修正后重试 |
+| Autopilot 任务死锁 | 进度卡在同一个任务 >30分钟 | `autopilot_disable → 排查阻塞原因 → 重新启用` |
+| Swarm 节点断联 | Agent 心跳超时 | 自动移除失联节点，剩余 Agent 降级为独立模式继续 |
+| Browser session 超时 | 录制超过 60 秒无交互 | 自动保存当前 session 快照，提示用户续录或重录 |
+| 模型路由 API 不可用 | `hooks_model-route` 返回 503 | fallback 到默认弱模型，记录告警日志 |
+| 费用查询异常 | `hooks_metrics` 返回空 | 提示 "本周期无数据或查询超时，请稍后重试" |
+
 ## 注意事项
 1. Autopilot 适合 >3 个任务的批量场景，单任务不建议
 2. memory_store 的 key 建议用 `{领域}:{主题}:{日期}` 格式
