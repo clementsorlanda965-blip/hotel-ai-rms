@@ -55,6 +55,8 @@ Group failures by what's broken:
 
 Each domain is independent - fixing tool approval doesn't affect abort tests.
 
+> **检查点：** 向用户展示领域分组，确认各域确实互不依赖后再进入任务创建
+
 ### 2. Create Focused Agent Tasks
 
 Each agent gets:
@@ -73,6 +75,8 @@ Task("Fix tool-approval-race-conditions.test.ts failures")
 // All three run concurrently
 ```
 
+> **检查点：** 派发前向用户展示各代理的任务清单，确认 scope 和约束准确
+
 ### 4. Review and Integrate
 
 When agents return:
@@ -80,6 +84,8 @@ When agents return:
 - Verify fixes don't conflict
 - Run full test suite
 - Integrate all changes
+
+> **检查点：** 汇总各代理结果摘要请用户确认，再执行集成
 
 ## Agent Prompt Structure
 
