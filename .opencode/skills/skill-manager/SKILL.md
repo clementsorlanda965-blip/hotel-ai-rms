@@ -30,3 +30,12 @@ npx skills add <owner/repo@skill> -g -y
 1. 读取现有SKILL.md
 2. 检查是否符合opencode规范（name格式、description是否含触发词、目录名是否匹配）
 3. 提出改进建议并应用
+
+## 异常处理
+- skills.sh不可达→改搜GitHub topics `opencode-skill`
+- 目录已存在→询问覆盖/合并/跳过
+- description缺触发词→补全后用户确认
+- npx失败→手动下载SKILL.md放入对应目录
+- 搜索无结果→换关键词重试
+- SKILL.md不存在→提示先创建
+- 用户否决建议→只应用用户同意的部分
