@@ -277,6 +277,17 @@ If you catch yourself thinking:
 | **3. Hypothesis** | Form theory, test minimally | Confirmed or new hypothesis |
 | **4. Implementation** | Create test, fix, verify | Bug resolved, tests pass |
 
+## 边界场景处理
+
+| 场景 | 处理方式 |
+|------|---------|
+| 无法复现（随机/间歇性） | 加日志/监控等待下次触发，不推测修复 |
+| Git 无最近变更 | 检查依赖版本、环境变量、配置漂移 |
+| 系统无日志/诊断 | 先加日志重现场景，再分析 |
+| 用户无法提供更多信息 | 缩小可复现范围，从可见症状反向推 |
+| 多错误同时出现 | 按调用链顺序逐个排查，先修第一个错误 |
+| 疑似外部依赖问题 | 检查上游版本更新、API 变更、服务状态页 |
+
 ## When Process Reveals "No Root Cause"
 
 If systematic investigation reveals issue is truly environmental, timing-dependent, or external:
