@@ -21,6 +21,10 @@ metadata:
    - 分析：排序/筛选/透视表
 4. **生成文件** — 用openpyxl构建Workbook，应用所有操作，保存为`.xlsx`
 5. **输出** — 文件写入outputs/目录，自动打开预览
+## 异常处理
+- **数据源空** → 新建空表，提示补充
+- **公式无效** → IFERROR包装，输出提示
+- **保存失败** → 返回代码块，提示手动保存
 ## Python 示例
 ```python
 import openpyxl
