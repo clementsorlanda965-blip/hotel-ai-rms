@@ -13,6 +13,40 @@ Start by understanding the current project context, then ask questions one at a 
 Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
 </HARD-GATE>
 
+## 边界条件处理
+
+### 用户说"直接做，不用设计"
+```
+IF 用户要求跳过设计步骤直接实现:
+  1. 重申 <HARD-GATE> 规则："我理解你想快，但所有项目都需要先确认设计再动手。我尽量简化，只问最关键的几个问题。"
+  2. 压缩流程：只问 1-2 个关键问题 → 1 个推荐方案 → 简短确认 → 进入实现
+  3. 不可完全跳过设计确认环节
+```
+
+### 用户反复修改需求
+```
+IF 用户在第3轮设计迭代后仍在大幅改动需求:
+  1. 暂停设计展示
+  2. 温和指出："需求看起来还在变动中。要不要先锁定一个最小可行范围，后续再迭代扩展？"
+  3. 如果用户坚持变动→缩小当前 scope，建议其他需求放进下个版本
+```
+
+### 用户否定所有方案
+```
+IF 用户拒绝了所有 2-3 个方案:
+  1. 继续提问，探索被否定的原因："这些方案都不太合适？能说说具体哪里不满意吗？"
+  2. 根据反馈重新提出 1-2 个新方向
+  3. 过 2 轮仍未达成一致 → 建议发散讨论后再聚焦
+```
+
+### 范围完全不明确
+```
+IF 用户对"做什么"完全没有概念:
+  1. 用多选问题引导："以下哪个最接近你的想法？A) ... B) ... C) ..."
+  2. 缩小到可执行的范围
+  3. 如果 3 轮提问后范围仍模糊 → 建议先做个原型/调研再回来设计
+```
+
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
 
 Every project goes through this process. A todo list, a single-function utility, a config change — all of them. "Simple" projects are where unexamined assumptions cause the most wasted work. The design can be short (a few sentences for truly simple projects), but you MUST present it and get approval.

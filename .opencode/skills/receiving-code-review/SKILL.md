@@ -161,6 +161,40 @@ If you pushed back and were wrong:
 
 State the correction factually and move on.
 
+## 边界条件处理
+
+### 多条反馈相互矛盾
+```
+IF 两条反馈建议相互矛盾（如"加X"和"删X相关代码"）:
+  1. 先别动手
+  2. 向 reviewer 澄清矛盾点："这两条建议似乎指向不同方向：[引原文]。能否协调？"
+  3. 如 reviewer 不及时回复，升级给你的 human partner 决策
+```
+
+### 反馈列表过长（10+项）
+```
+IF 反馈项 ≥ 10:
+  1. 先按优先级分类：阻塞 > 简单修复 > 复杂重构 > 风格建议
+  2. 向你的 human partner 摘要汇报："共[N]条，其中[M]条阻塞，[K]条简单。建议先修阻塞和简单的？"
+  3. 获得确认后分批实施，每批不超过5项
+```
+
+### 多位 reviewer 意见冲突
+```
+IF 来自不同 reviewer 的意见冲突:
+  1. 不自行裁决
+  2. 向你的 human partner 汇报："Reviewer A 说[X]，Reviewer B 说[Y]。建议如何处理？"
+  3. 按指示执行
+```
+
+### Reviewer 无法提供澄清
+```
+IF 发出澄清请求后 reviewer 超过24h未回复（或不可达）:
+  1. 按你当前对需求的理解给出保守方案（最少改动）
+  2. 标注为"待 reviewer 确认"
+  3. 向你的 human partner 说明情况
+```
+
 ## Common Mistakes
 
 | Mistake | Fix |
