@@ -11,28 +11,52 @@ Load plan, review critically, execute all tasks, report when complete.
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
+## Example Workflow
+
+```
+User: "执行 docs/deployment-plan.md 的实施计划"
+
+You: [Read plan] "已读取部署计划，包含3个任务。"
+     [Present review] "计划完整，是否开始按顺序执行？"
+User: "开始"
+
+You: [Task 1: Setup environment]
+     "正在执行任务1..."
+     [After task 1] "任务1完成，验证通过。是否继续下一个任务？"
+User: "继续"
+...
+```
+
 **Note:** Tell your human partner that Superpowers works much better with access to subagents. The quality of its work will be significantly higher if run on a platform with subagent support (such as Claude Code or Codex). If subagents are available, use superpowers:subagent-driven-development instead of this skill.
 
 ## The Process
 
 ### Step 1: Load and Review Plan
-1. Read plan file
-2. Review critically - identify any questions or concerns about the plan
+1. Read plan file — use `Read` tool on the plan path
+2. Review critically — check:
+   - Are all prerequisites installed/available?
+   - Is each step concrete enough to execute?
+   - Are verification steps specified?
+   - Are file paths and commands correct?
 3. **Checkpoint:** Present your review summary to the user and ask for confirmation before starting
    - "已审阅计划，发现X个问题/计划完整。是否开始执行？"
    - Wait for explicit user approval (Y/n) before proceeding
 4. If concerns: Raise them with your human partner before starting, wait for resolution
-5. If no concerns and user confirmed: Create TodoWrite and proceed
+5. If no concerns and user confirmed: Create TodoWrite (or markdown checklist) and proceed
 
 ### Step 2: Execute Tasks
 
 For each task:
-1. Mark as in_progress
-2. Follow each step exactly (plan has bite-sized steps)
-3. Run verifications as specified
+1. Mark as in_progress in your checklist
+2. Follow each step exactly (plan has bite-sized steps) — use:
+   - `Read` to read source files before modifying
+   - `Edit` to make targeted changes (preferred over full rewrites)
+   - `Write` only for new files
+   - `Bash` for commands (npm install, pytest, git, etc.)
+3. Run verifications as specified (tests, lint, manual checks)
 4. **Checkpoint after each task:** Present task result summary, ask user to confirm before next task
-   - "任务X已完成（通过/失败）。是否继续下一个任务？"
-   - If verification failed: present details and ask user for guidance
+   - "✅ 任务X完成，验证通过。是否继续下一个任务？"
+   - "❌ 任务X验证失败：[原因]。如何继续？重试/跳过/修改计划？"
 5. Mark as completed after user confirmation
 
 ### Step 3: Complete Development
