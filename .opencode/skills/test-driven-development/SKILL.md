@@ -372,6 +372,13 @@ Can't check all boxes? You skipped TDD. Start over.
 | Must mock everything | Code too coupled. Use dependency injection. |
 | Test setup huge | Extract helpers. Still complex? Simplify design. |
 
+## 资源引用
+
+| 资源 | 用途 |
+|------|------|
+| `test-prompts.json` | 本 skill 测试 prompt 集，用于验证 TDD 流程是否按预期执行 |
+| `@testing-anti-patterns.md` | 测试反模式参考，避免 mock 滥用和测试设计陷阱 |
+
 ## Debugging Integration
 
 Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression.
