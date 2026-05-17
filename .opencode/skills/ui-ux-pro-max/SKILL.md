@@ -45,6 +45,8 @@ Extract key information from user request:
 - **Industry**: healthcare, fintech, gaming, education, etc.
 - **Stack**: React, Vue, Next.js, or default to `html-tailwind`
 
+> **检查点：** 向用户展示分析结果（产品类型 + 风格 + 行业），确认方向正确后再进入 Step 2
+
 ### Step 2: Generate Design System (REQUIRED)
 
 **Always start with `--design-system`** to get comprehensive recommendations with reasoning:
@@ -117,6 +119,8 @@ python3 skills/ui-ux-pro-max/scripts/search.py "<keyword>" --stack html-tailwind
 
 Available stacks: `html-tailwind`, `react`, `nextjs`, `vue`, `svelte`, `swiftui`, `react-native`, `flutter`, `shadcn`, `jetpack-compose`
 
+> **检查点：** 汇总完整设计方案（风格/配色/字体/效果+领域补充+栈指导），请用户确认后再编码实现
+
 ---
 
 ## Search Reference
@@ -170,6 +174,8 @@ python3 skills/ui-ux-pro-max/scripts/search.py "beauty spa wellness service eleg
 ```
 
 **Output:** Complete design system with pattern, style, colors, typography, effects, and anti-patterns.
+
+> **检查点：** 展示设计系统输出，用户确认后再进入细节搜索阶段
 
 ### Step 3: Supplement with Detailed Searches (as needed)
 
