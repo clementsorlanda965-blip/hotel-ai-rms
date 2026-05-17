@@ -49,32 +49,27 @@ metadata:
 
 ## 工作流
 
-### 1. 文本预处理
-```
-输入文本 → 按标点分段（。！？为界，12字内优先）→ 生成配音序列
-```
+| 步骤 | 输入 | 工具/操作 | 输出 |
+|------|------|-----------|------|
+| 1. 需求确认 | 用户原始需求（文本+风格要求） | 检查点 Step0：展示引擎+音色候选给用户确认 | 确认后的需求规格 |
+| 2. 文本预处理 | 确认后的原始文本 | 按标点分段（。！？为界，12字/段优先），过滤空段/纯标点段 | 配音序列（分段列表） |
+| 3. 参数配置 | 配音序列+用户风格偏好 | 选引擎(edge-tts/ChatTTS) → 选音色 → 设语速(+10%)/音调(-2Hz) | 配音参数配置单 |
+| 4. 语音生成 | 配音序列+参数配置 | 检查点Step2音色确认 → 调用 engine.generate(seq, params) → 检查点Step3输出前确认 | 输出文件到 `outputs/audio/` |
+| 5. 集成输出 | 配音文件+原始脚本 | 按 `outputs/script.json` 镜头编号对应命名，生成字幕时间轴 | `outputs/audio/scene_XX.mp3` + `outputs/subtitles.json` |
 
-### 2. 配音参数
+### 配音参数推荐值
 
 | 参数 | 推荐值 | 说明 |
 |------|--------|------|
 | rate | `+10%` | 语速稍微加快，适合短视频节奏 |
 | pitch | `-2Hz` | 音调微降，更沉稳 |
-| voice | 按场景选 | 见上表 |
+| voice | 按场景选 | 见引擎选择音色表 |
 
-### 3. 输出规范
+### 输出规范
 - 格式：MP3（edge-tts）/ WAV（ChatTTS）
 - 路径：`outputs/audio/voiceover.mp3`
 - 采样率：16000Hz（edge-tts）/ 24000Hz（ChatTTS）
 - 文件名：有多个配音时按镜头编号命名 `outputs/audio/scene_01.mp3`
-
-### 4. 与 video-factory 集成
-直接替代环节三的配音部分。输出文件名与 `script.json` 中的镜头编号对应：
-```
-outputs/script.json  →  读取旁白文字
-outputs/audio/voiceover.mp3  →  输出配音文件
-outputs/subtitles.json  →  同时输出字幕时间轴（配合 speech-recognition 技能）
-```
 
 ## 代码骨架
 
