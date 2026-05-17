@@ -39,6 +39,9 @@ When user requests UI/UX work (design, build, create, implement, review, fix, im
 
 ### Step 1: Analyze User Requirements
 
+**输入：** 用户原始需求描述
+**输出：** 4要素分析结果（Product type, Style, Industry, Stack）
+
 Extract key information from user request:
 - **Product type**: SaaS, e-commerce, portfolio, dashboard, landing page, etc.
 - **Style keywords**: minimal, playful, professional, elegant, dark mode, etc.
@@ -48,6 +51,9 @@ Extract key information from user request:
 > **检查点：** 向用户展示分析结果（产品类型 + 风格 + 行业），确认方向正确后再进入 Step 2
 
 ### Step 2: Generate Design System (REQUIRED)
+
+**输入：** Step 1 的 4 要素分析结果
+**输出：** 完整设计系统（pattern, style, colors, typography, effects, anti-patterns）
 
 **Always start with `--design-system`** to get comprehensive recommendations with reasoning:
 
@@ -93,6 +99,9 @@ This also creates:
 
 ### Step 3: Supplement with Detailed Searches (as needed)
 
+**输入：** 设计系统输出 + 用户关注的领域（style/chart/ux/typography/landing）
+**输出：** 领域补充搜索信息
+
 After getting the design system, use domain searches to get additional details:
 
 ```bash
@@ -110,6 +119,9 @@ python3 skills/ui-ux-pro-max/scripts/search.py "<keyword>" --domain <domain> [-n
 | Landing structure | `landing` | `--domain landing "hero social-proof"` |
 
 ### Step 4: Stack Guidelines (Default: html-tailwind)
+
+**输入：** 项目分析 + 目标技术栈
+**输出：** 实现级最佳实践指导
 
 Get implementation-specific best practices. If user doesn't specify a stack, **default to `html-tailwind`**.
 
