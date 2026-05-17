@@ -5,9 +5,12 @@ description: 请求代码审查——完成任务或实现主要功能后、合�
 
 # Requesting Code Review
 
-Dispatch a code reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
+**Purpose:** 在合并前或任务切换前，派发独立审查子代理检查代码质量与需求满足度。
+**核心原则:** 早审查、常审查。
 
-**Core principle:** Review early, review often.
+这6步流程在 `requesting-code-review/code-reviewer.md` 中有完整审查模板可复用。
+
+Dispatch a code reviewer subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation — never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
 
 ## When to Request Review
 
@@ -53,13 +56,14 @@ git diff --stat ${BASE_SHA}..${HEAD_SHA}
 - 等待用户决策后再派发
 
 **Step 3 — 派发审查子代理:**
-1. 打开 `code-reviewer.md` 模板
+1. 打开模板文件 (路径: `requesting-code-review/code-reviewer.md`, 同目录可用 `Read` 读取)
 2. 填充4个占位符:
    - `{DESCRIPTION}` — 实现概要
    - `{PLAN_OR_REQUIREMENTS}` — 需求/计划路径或文本
    - `{BASE_SHA}` — 起始commit
    - `{HEAD_SHA}` — 结束commit
-3. 使用 Task tool (`general-purpose`类型) 派发
+3. 使用 Task tool (`general-purpose`类型) 派发，prompt填入完整填充后的模板内容
+4. 模板包含: 代码质量/架构/测试/生产就绪度全方位检查 + 三级严重度分类 + 明确合并结论
 
 **Step 4 — 接收审查结果（检查点）:**
 - 读取子代理返回的 Strengths / Issues / Assessment
