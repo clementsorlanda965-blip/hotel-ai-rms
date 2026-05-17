@@ -277,6 +277,30 @@ If you catch yourself thinking:
 | **3. Hypothesis** | Form theory, test minimally | Confirmed or new hypothesis |
 | **4. Implementation** | Create test, fix, verify | Bug resolved, tests pass |
 
+### 常用诊断命令
+
+```bash
+# 检查最近变更
+git log --oneline -20
+git diff HEAD~5   # 查看5次提交内的变更
+git stash list    # 检查是否有未处理的stash
+
+# 检查环境
+env | grep -i key  # 检查关键环境变量
+npm ls            # 依赖树
+pip freeze        # Python依赖
+
+# 检查服务
+curl -v http://localhost:8080/health
+systemctl status myservice
+docker logs --tail=50 container_name
+
+# 检查文件
+ls -la config/
+cat package.json | grep version
+stat -c %Y filename  # 文件修改时间
+```
+
 ## 边界场景处理
 
 | 场景 | 处理方式 |
