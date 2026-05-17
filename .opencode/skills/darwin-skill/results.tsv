@@ -81,3 +81,19 @@
 2026-05-17T11:06	991c1b4	using-superpowers	84.7	86.2	keep	资源整合度	新增资源引用表	dry_run
 2026-05-17T11:07	d428023	using-superpowers	86.2	88.3	keep	检查点设计	新增4个用户确认检查点	dry_run
 2026-05-17T11:08	4686270	using-superpowers	88.3	90.3	keep	边界条件覆盖	新增5种边界场景处理	dry_run
+2026-05-17T10:55	263bf20	dispatching-parallel-agents	82.6	86.2	keep	资源整合度	新增资源集成表引用test-prompts.json+3关联Skill	dry_run
+2026-05-17T10:55	59d6941	dispatching-parallel-agents	86.2	90.0	keep	检查点设计	新增3处用户确认检查点	dry_run
+2026-05-17T10:55	0683e56	dispatching-parallel-agents	90.0	93.0	keep	边界条件覆盖	新增7种异常场景处理	dry_run
+
+2026-05-17T11:01	fe078f0	finishing-a-development-branch	90.2	91.7	keep	资源整合度	新增test-prompts.json引用+关联skill链接	dry_run
+2026-05-17T11:01	fe078f0	finishing-a-development-branch	91.7	93.1	keep	检查点设计	新增合并前确认+PR前确认检查点	dry_run
+2026-05-17T11:01	0016f85	receiving-code-review	87.3	88.8	keep	检查点设计	新增3处操作前用户确认检查点(实施前/推回前/修复后)	dry_run
+2026-05-17T11:01	ccf06c0	brainstorming	88.5	89.8	keep	资源整合度	新增资源速查表关联test-prompts.json/visual-companion/docs目录	dry_run
+2026-05-17T11:20	1d64351	verification-before-completion	96.7	98.1	keep	资源整合度	新增关联资源表(test-prompts.json+2关联skill)	dry_run
+2026-05-17T12:00	357154d	video-factory	89.1	91.6	keep	检查点设计	新增4处用户确认检查点+跳过条件表	eval
+2026-05-17T12:01	ed7061c	writing-plans	89.1	91.1	keep	Frontmatter质量	补充license/compatibility/allowed-tools/metadata	eval
+2026-05-17T12:02	b353da8	video-factory	91.6	93.6	keep	边界条件覆盖	新增7种异常场景处理表(diffusers/网络/FFmpeg/磁盘/文件/MoviePy/配音)	eval
+2026-05-17T12:02	b353da8	writing-plans	91.1	93.6	keep	边界条件覆盖	新增6种异常处理(拒绝/测试框架/路径/冲突/变更/依赖)	eval
+2026-05-17T12:03	31dc728	video-factory	93.6	95.1	keep	工作流清晰度	新增6步流程速查表(输入/工具/输出/检查点)	eval
+2026-05-17T12:03	31dc728	writing-plans	93.6	96.1	keep	资源整合度+内容中文化	全篇中文翻译+test-prompts引用+集成指引表	eval
+2026-05-17T11:22	6af1725	verification-before-completion	98.1	98.8	keep	检查点设计	Gate Function新增Step0用户确认环节	dry_run
