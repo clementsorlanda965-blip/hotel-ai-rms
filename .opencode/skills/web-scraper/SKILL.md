@@ -16,6 +16,15 @@ metadata:
 ## 强制规则
 所有文字输出必须是中文。采集的数据以中文标注字段名。输出到 `outputs/` 目录（JSON 或 Excel）。
 
+## 测试用例
+本技能配套测试数据见 `test-prompts.json`，包含 3 个典型场景。测试用例索引：
+
+| ID | Prompt | 覆盖功能 | 预期产出 |
+|----|--------|---------|---------|
+| 1 | 爬携程上海五星酒店价格前10家 | 批量采集 + JSON/Excel输出 | 含酒店名称/房型/价格/评分的结构化数据 |
+| 2 | 监控竞品酒店价格每日更新 | 定时采集 + Excel输出 | 含多日价格趋势的竞品对比表 |
+| 3 | 搜索热点电影的话题热度 | 搜索采集 + JSON输出 | 含标题/热度/来源/日期的榜单数据 |
+
 ## 做什么
 从网页抓取结构化数据，用于酒店竞品价格监控、市场情报收集、影视热点话题追踪。Firecrawl 内建 AI 提取能力，可自动将网页转为结构化 JSON。
 
@@ -111,8 +120,9 @@ result = app.search("大明王朝1566 解说 热点", params={"limit": 20})
 
 ### 5. 与 hotel-bi 集成
 ```
-web-scraper → outputs/hotel_prices.json → hotel-bi → 经营分析报表
-web-scraper → outputs/competitor_data.json → hotel-docs → 竞品分析报告
+web-scraper → outputs/hotel_prices.json → hotel-bi (skill) → 经营分析报表 (outputs/xlsx/)
+web-scraper → outputs/competitor_data.json → hotel-docs (skill) → 竞品分析报告 (outputs/docx/)
+web-scraper → outputs/market_trends.json → ralph-cycle (skill) → 自动化周报流水线
 ```
 
 ## 降级策略
