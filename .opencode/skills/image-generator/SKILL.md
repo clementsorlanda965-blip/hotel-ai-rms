@@ -107,8 +107,14 @@ script.json[视觉描述] → image-generator → outputs/frames/scene_XX.png �
 - 命名：`cover.png`（封面）/ `scene_01.png`（配图序列）
 - 色彩空间：RGB
 
-## 注意事项
-1. ComfyUI 首次启动需下载模型（SD1.5 ~4GB / SDXL ~7GB）
-2. PIL 降级自动寻找系统字体（simhei.ttf / msyh.ttc）
-3. 视频配图序列自动保持 1080×1920 分辨率
-4. 所有输出遵循 AGENTS.md 的 outputs/ 目录规则
+## 异常与边界条件
+
+| 场景 | 触发条件 | 处理动作 |
+|------|---------|---------|
+| ComfyUI 未启动 | API 调用连接失败 | 提示用户启动 ComfyUI：`python tools/ComfyUI/main.py`，或切 PIL 降级 |
+| ComfyUI API 超时 | 生图超过60秒无响应 | 重试1次，仍超时则提示用户检查 GPU 状态，切 PIL 降级 |
+| GPU 不可用 | CUDA 未安装/显存不足 | 自动切换 PIL 降级方案，提示"当前无 GPU，使用 CPU 文字卡片模式" |
+| 字体文件缺失 | simhei.ttf / msyh.ttc 未找到 | 自动尝试系统备用字体（arial.ttf / noto-sans），均失败则用默认字体 |
+| 输出目录不存在 | outputs/images/ 未被创建 | 自动 `os.makedirs` 创建，确保写入路径可用 |
+| 磁盘空间不足 | 保存图片时磁盘满 | 提示用户释放空间，输出临时路径到 temp 目录 |
+| 图片生成质量差 | PIL 降级输出过于简陋 | 提示用户"建议安装 ComfyUI 以获取更高品质图片" |
