@@ -57,6 +57,12 @@ metadata:
 引用检查点1，确认后执行：
 ```python
 from funasr import AutoModel
+import os
+
+audio_path = "outputs/audio/voiceover.mp3"
+
+if not os.path.exists(audio_path):
+    raise FileNotFoundError(f"音频文件不存在: {audio_path}")
 
 model = AutoModel(
     model="iic/speech_paraformer-large-vad-punc_asr_nat-zh-cn",
@@ -64,12 +70,36 @@ model = AutoModel(
     punc_model="iic/punc_ct-transformer_zh-cn-common-vad_realtime-vocab272727",
 )
 
-result = model.generate(input="outputs/audio/voiceover.mp3")
-# result[0]["text"] → 完整识别文本
-# result[0]["timestamp"] → 逐句时间戳
+result = model.generate(input=audio_path)
+# result[0]["text"] → 完整识别文本（str）
+# result[0]["timestamp"] → 逐句时间戳（list of [start, end]）
 ```
 
 ### 4. 输出 SRT 格式
+
+SRT规范：序号从1开始，时间轴格式 `HH:MM:SS,mmm --> HH:MM:SS,mmm`，每段字幕不超过42个中文字符。
+
+```python
+def write_srt(segments, output_path="outputs/subtitles/subtitles.srt"):
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        for i, seg in enumerate(segments, 1):
+            start = seg["start"]  # 秒
+            end = seg["end"]
+            text = seg["text"].strip()
+            f.write(f"{i}\n")
+            f.write(f"{fmt_time(start)} --> {fmt_time(end)}\n")
+            f.write(f"{text}\n\n")
+
+def fmt_time(seconds):
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    ms = int((seconds % 1) * 1000)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+```
+
+示例SRT输出：
 ```
 1
 00:00:01,200 --> 00:00:03,500
