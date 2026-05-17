@@ -234,6 +234,14 @@ You understand 1,2,3,6. Unclear on 4,5.
 ✅ "Understand 1,2,3,6. Need clarification on 4 and 5 before implementing."
 ```
 
+## 资源速查
+
+| 资源 | 路径 | 用途 |
+|------|------|------|
+| 测试用例 | `skills/receiving-code-review/test-prompts.json` | 3组典型审查反馈场景，覆盖常规/兼容性/不明确项 |
+| 关联Skill | `skills/requesting-code-review/SKILL.md` | 审查请求流程，与本skill形成闭环 |
+| 关联Skill | `skills/systematic-debugging/SKILL.md` | 审查中发现bug后的系统化调试方法 |
+
 ## User Confirmation Checkpoints
 
 在关键决策前暂停并获取用户确认，防止自主越权：

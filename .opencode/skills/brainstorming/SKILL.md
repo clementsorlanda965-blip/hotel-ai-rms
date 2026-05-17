@@ -111,6 +111,19 @@ digraph brainstorming {
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
 
+**示例——多选提问：**
+```
+❌ "你想做什么？"（太宽泛）
+✅ "这个工具的主要用户是谁？A) 普通员工  B) 管理员  C) 客户"
+✅ "数据存储方式偏好？A) 本地SQLite  B) 云端 PostgreSQL  C) 先本地后迁移"
+```
+
+**示例——范围分解：**
+```
+用户："我要做一个完整的电商平台，包括商品管理、购物车、支付、物流跟踪、评价系统、客服"
+✅ "这个平台包含6个子系统。建议先聚焦最小闭环：商品管理→购物车→支付。物流/评价/客服作为后续迭代。先设计商品管理+购物车？"
+```
+
 **Exploring approaches:**
 
 - Propose 2-3 different approaches with trade-offs
