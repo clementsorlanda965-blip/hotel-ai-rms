@@ -13,14 +13,16 @@ metadata:
 ## 创建技能
 1. 理解用户要什么能力
 2. 按opencode规范生成SKILL.md：name(小写英文-连接)、description(含触发关键词)、metadata
-3. 写入 `.opencode/skills/<name>/SKILL.md`
+3. **展示内容获用户确认后**写入 `.opencode/skills/<name>/SKILL.md`
 
 ## 查找技能
 1. 搜索GitHub topics: `opencode-skill`
 2. 访问 https://skills.sh 浏览技能目录
-3. 按stars/更新日期/兼容性排序推荐
+3. 按stars排序推荐，**展示给用户选目标**
 
 ## 安装技能
+**确认安装来源后**执行：
+
 ```bash
 npx skills add <owner/repo@skill> -g -y
 ```
@@ -29,7 +31,7 @@ npx skills add <owner/repo@skill> -g -y
 ## 优化技能
 1. 读取现有SKILL.md
 2. 检查是否符合opencode规范（name格式、description是否含触发词、目录名是否匹配）
-3. 提出改进建议并应用
+3. **展示检查结果和建议给用户**，确认后应用
 
 ## 异常处理
 - skills.sh不可达→改搜GitHub topics `opencode-skill`
