@@ -86,6 +86,16 @@ digraph skill_flow {
 }
 ```
 
+## 边界场景处理
+
+| 场景 | 处理方式 |
+|------|---------|
+| Skill 加载失败/不存在 | 告知用户 skill 不可用，提供替代方案或直接执行需求 |
+| 用户指令与 skill 冲突 | 以用户指令为准（按 Instruction Priority），说明冲突点 |
+| 多个 skill 高度重叠 | 选择最具体的那个，向用户说明选择理由 |
+| 用户中途中断 skill 执行 | 停止当前流程，不做强制完成 |
+| 环境不支持 skill 工具 | 继续用默认行为，告知用户 skill 不可用 |
+
 ## Red Flags
 
 These thoughts mean STOP—you're rationalizing:
