@@ -1,6 +1,11 @@
 ---
 name: subagent-driven-development
 description: 子代理驱动开发——在当前会话中执行包含多个独立任务的实施计划，利用子代理并行开发提升效率。输入"子代理""并行开发""多代理"时触发。
+license: MIT
+compatibility: opencode
+allowed-tools: Bash Read Write Glob Grep Edit Agent
+metadata:
+  language: zh-CN
 ---
 
 # Subagent-Driven Development
@@ -277,16 +282,11 @@ Done!
 - Dispatch fix subagent with specific instructions
 - Don't try to fix manually (context pollution)
 
-## Integration
+## 边界条件处理
 
-**Required workflow skills:**
-- **superpowers:using-git-worktrees** - Ensures isolated workspace (creates one or verifies existing)
-- **superpowers:writing-plans** - Creates the plan this skill executes
-- **superpowers:requesting-code-review** - Code review template for reviewer subagents
-- **superpowers:finishing-a-development-branch** - Complete development after all tasks
-
-**Subagents should use:**
-- **superpowers:test-driven-development** - Subagents follow TDD for each task
-
-**Alternative workflow:**
-- **superpowers:executing-plans** - Use for parallel session instead of same-session execution
+| 场景 | 处理方式 |
+|------|----------|
+| **subagent 未返回任何状态（超时/崩溃）** | 等待10秒后重新派发同任务，使用相同上下文 |
+| **多个 subagent 修改同一文件** | 禁止并行派发 implementer；确保前一个任务 commit 后再开始下一个 |
+| **spec reviewer 和 implementer 都认为正确，但功能仍异常** | 派发第三个 subagent 做端到端集成测试验证 |
+| **subagent 因权限不足失败** | 提供具体命
