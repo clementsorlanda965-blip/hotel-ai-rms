@@ -1,6 +1,11 @@
 ---
 name: verification-before-completion
 description: 完成前验证——宣称工作完成或问题修复前必须运行验证命令并确认输出，先验证再断言。输入"验证""检查""确认完成""自检"时触发。
+license: MIT
+compatibility: opencode
+allowed-tools: Bash Read Write Grep Glob
+metadata:
+  language: zh-CN
 ---
 
 # Verification Before Completion
@@ -21,23 +26,44 @@ NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
 
 If you haven't run the verification command in this message, you cannot claim it passes.
 
-## The Gate Function
+## 工作流程（Gate Function）
 
+### Step 0: 预确认
+向用户呈现计划执行的验证命令："我将运行 [命令] 验证 [断言]。确认执行？"
+等待用户明确同意后再继续。
+
+### Step 1: 识别验证命令
+确定能证明该断言的完整命令：
+
+```python
+# 验证命令对照
+verification_map = {
+    "测试通过": "python -m pytest tests/ -x --tb=short -q",
+    "代码风格": "flake8 src/ --max-line-length=100",
+    "编译成功": "python -c \"import ast; ast.parse(open('main.py').read())\"",
+    "功能正确": "python -c \"from module import func; assert func(1) == 2\"",
+    "构建通过": "npm run build",
+}
 ```
-BEFORE claiming any status or expressing satisfaction:
 
-0. CONFIRM: Present the planned verification to the user ("I will run [command] to verify [claim]. Confirm?")
-   - Wait for explicit user consent before proceeding
-1. IDENTIFY: What command proves this claim?
-2. RUN: Execute the FULL command (fresh, complete)
-3. READ: Full output, check exit code, count failures
-4. VERIFY: Does output confirm the claim?
-   - If NO: State actual status with evidence
-   - If YES: State claim WITH evidence
-5. ONLY THEN: Make the claim
+### Step 2: 执行验证
+运行完整命令，查看全部输出和退出码：
 
-Skip any step (including 0) = lying, not verifying
+```bash
+# 示例：验证测试
+python -m pytest tests/ -x --tb=short -q
+# 必须读取完整输出（不仅看退出码），确认具体失败项
 ```
+
+### Step 3: 核对结果
+- 退出码 = 0 ✅ → 检查输出中是否有"FAILED"、"Error"、"failure"等关键词
+- 退出码 ≠ 0 ❌ → 输出实际状态（含失败原因），不得声称通过
+
+### Step 4: 作出断言
+- 验证通过 → 附证据陈述："测试通过 (34/34 pass, exit 0)"
+- 验证失败 → 陈述实际状态："2项测试失败：[描述]，需修复"
+
+Skip any step (0-4) = lying, not verifying
 
 ## Common Failures
 
@@ -107,45 +133,10 @@ Skip any step (including 0) = lying, not verifying
 ❌ Trust agent report
 ```
 
-## Why This Matters
+## 边界条件
 
-From 24 failure memories:
-- your human partner said "I don't believe you" - trust broken
-- Undefined functions shipped - would crash
-- Missing requirements shipped - incomplete features
-- Time wasted on false completion → redirect → rework
-- Violates: "Honesty is a core value. If you lie, you'll be replaced."
-
-## When To Apply
-
-**ALWAYS before:**
-- ANY variation of success/completion claims
-- ANY expression of satisfaction
-- ANY positive statement about work state
-- Committing, PR creation, task completion
-- Moving to next task
-- Delegating to agents
-
-**Rule applies to:**
-- Exact phrases
-- Paraphrases and synonyms
-- Implications of success
-- ANY communication suggesting completion/correctness
-
-## The Bottom Line
-
-**No shortcuts for verification.**
-
-Run the command. Read the output. THEN claim the result.
-
-This is non-negotiable.
-
----
-
-## 关联资源
-
-| 资源 | 路径 | 用途 |
-|------|------|------|
-| 测试用例集 | `./test-prompts.json` | 维度8实测验证用例 |
-| 代码审查 | `superpowers:requesting-code-review` | 验证前置依赖 |
-| TDD流程 | `superpowers:test-driven-development` | 验证前置依赖（红绿循环） |
+| 场景 | 处理方式 |
+|------|----------|
+| **验证命令本身不存在（如未安装 pytest）** | 安装对应工具或寻找替代验证方式（如 python -m unittest） |
+| **验证命令耗时过长（>30秒）** | 设置超时，如果超时先报告"验证超时"，询问用户是否继续等待 |
+| **无可用测试/验证命令*
