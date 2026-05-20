@@ -1,6 +1,11 @@
 ---
 name: receiving-code-review
 description: 接收代码审查反馈——收到代码审查反馈后、实施建议前使用，强调技术严谨性与独立验证，而非盲目接受。输入"审查反馈""代码评审意见"时触发。
+license: MIT
+compatibility: opencode
+allowed-tools: Bash Read Grep Glob Edit Write
+metadata:
+  language: zh-CN
 ---
 
 # Code Review Reception
@@ -11,17 +16,57 @@ Code review requires technical evaluation, not emotional performance.
 
 **Core principle:** Verify before implementing. Ask before assuming. Technical correctness over social comfort.
 
-## The Response Pattern
+## 工作流程
+
+### Step 1: READ — 完整阅读反馈
+完整阅读所有审查反馈，不做任何反应。不要边读边改。
+
+### Step 2: UNDERSTAND — 用自己的话复述需求
+对每条反馈，在自己脑中用技术语言重新表述一遍。不确定的标记为待澄清。
 
 ```
-WHEN receiving code review feedback:
+✅ 理解清晰 → 标记为"可直接实施"
+❌ 理解模糊 → 标记为"需澄清"，暂不实施
+```
 
-1. READ: Complete feedback without reacting
-2. UNDERSTAND: Restate requirement in own words (or ask)
-3. VERIFY: Check against codebase reality
-4. EVALUATE: Technically sound for THIS codebase?
-5. RESPOND: Technical acknowledgment or reasoned pushback
-6. IMPLEMENT: One item at a time, test each
+### Step 3: VERIFY — 对照代码库验证
+对每条建议进行技术验证，确认在当前代码库中是否合理：
+
+```python
+# 每条反馈的验证清单
+for feedback in review_items:
+    check = {
+        "技术上是否正确": verify_technically(feedback),
+        "是否破坏现有功能": check_backward_compat(feedback),
+        "当前实现有合理原因": check_implementation_reason(feedback),
+        "reviewer理解完整上下文": check_reviewer_context(feedback),
+    }
+    if all(check.values()):
+        mark_as_accepted(feedback)
+    else:
+        mark_as_contested(feedback)
+```
+
+### Step 4: EVALUATE — 技术评估
+对每条反馈的最终裁决：
+
+| 评估结果 | 行动 |
+|----------|------|
+| 正确且适用 | 标记为接受，准备实施 |
+| 正确但不适用当前场景 | 记录理由，暂不修改 |
+| 技术上不正确 | 准备推回，附技术证据 |
+| 无法判断 | 升级给决策者 |
+
+### Step 5: RESPOND — 技术确认或推回
+- **接受** → 简洁确认："已理解。[简要复述]，准备修改"
+- **推回** → 用技术理由，不用防御性语言
+- **需澄清** → 具体指出哪条不清楚
+
+### Step 6: IMPLEMENT — 逐项实施
+按照优先级逐项修改，每项改完单独测试：
+
+```
+项目顺序: 阻塞/安全问题 > 简单修复(拼写/导入) > 复杂重构 > 风格建议
 ```
 
 ## Forbidden Responses
@@ -207,69 +252,14 @@ IF 发出澄清请求后 reviewer 超过24h未回复（或不可达）:
 | Partial implementation | Clarify all items first |
 | Can't verify, proceed anyway | State limitation, ask for direction |
 
-## Real Examples
+## 边界条件速查表
 
-**Performative Agreement (Bad):**
-```
-Reviewer: "Remove legacy code"
-❌ "You're absolutely right! Let me remove that..."
-```
-
-**Technical Verification (Good):**
-```
-Reviewer: "Remove legacy code"
-✅ "Checking... build target is 10.15+, this API needs 13+. Need legacy for backward compat. Current impl has wrong bundle ID - fix it or drop pre-13 support?"
-```
-
-**YAGNI (Good):**
-```
-Reviewer: "Implement proper metrics tracking with database, date filters, CSV export"
-✅ "Grepped codebase - nothing calls this endpoint. Remove it (YAGNI)? Or is there usage I'm missing?"
-```
-
-**Unclear Item (Good):**
-```
-your human partner: "Fix items 1-6"
-You understand 1,2,3,6. Unclear on 4,5.
-✅ "Understand 1,2,3,6. Need clarification on 4 and 5 before implementing."
-```
-
-## 资源速查
-
-| 资源 | 路径 | 用途 |
-|------|------|------|
-| 测试用例 | `skills/receiving-code-review/test-prompts.json` | 3组典型审查反馈场景，覆盖常规/兼容性/不明确项 |
-| 关联Skill | `skills/requesting-code-review/SKILL.md` | 审查请求流程，与本skill形成闭环 |
-| 关联Skill | `skills/systematic-debugging/SKILL.md` | 审查中发现bug后的系统化调试方法 |
-
-## User Confirmation Checkpoints
-
-在关键决策前暂停并获取用户确认，防止自主越权：
-
-```
-检查点 A — 开始实施前
-  IF 反馈项 ≥ 1:
-    1. 汇总你的评估结论（哪些接受/哪些质疑/哪些不明）
-    2. 询问："我已评估完毕，[N]项直接修，[M]项需要推回，[K]项不清楚需澄清。可以继续吗？"
-    3. 等用户明确回复后再动手
-
-检查点 B — 推回争议前
-  IF 你打算对某条反馈提出技术性质疑：
-    1. 陈述你的技术理由和证据
-    2. 询问："这条建议我认为应该[具体问题]，建议[推回/折衷方案]。你的意见？"
-    3. 按用户指示执行，不要擅自决定
-
-检查点 C — 全部修复后
-  实施完所有可执行的反馈项后：
-    1. 简要汇报改动清单
-    2. 询问："已修复[X]项，其余[Y]项因[原因]未处理。验收一下？"
-    3. 等用户确认后再提交/合并
-```
-
-## GitHub Thread Replies
-
-**External feedback = suggestions to evaluate, not orders to follow.**
-
-Verify. Question. Then implement.
-
-No performative agreement. Technical rigor always.
+| 场景 | 处理方式 |
+|------|----------|
+| **两条反馈相互矛盾** | 先不动手，向 reviewer 澄清矛盾点；如不及时回复，通知用户决策 |
+| **反馈列表过长（≥10项）** | 按优先级分类（阻塞→简单→复杂→风格），向用户摘要汇报后分批实施（每批≤5项） |
+| **多位 reviewer 意见冲突** | 不自行裁决，向用户汇报冲突点请用户决策 |
+| **Reviewer 24h内未回复澄清** | 按最少改动方案实施，标注"待确认"，向用户说明情况 |
+| **建议涉及修改架构决策** | 暂停实施，与用户讨论后再继续 |
+| **建议不适用当前代码库** | 给出技术理由推回，引用现有代码/测试作证据 |
+| **推回后发现错了** | 简洁更正："
