@@ -56,6 +56,9 @@ test.txt
 # 图表动画中间帧（大文件）
 charts/animated/
 
+# Claude Code 本地配置（Worktree 目录在 .claude/ 内部）
+.claude/
+
 # bot 运行时文件
 bot/node_modules/
 bot/package-lock.json

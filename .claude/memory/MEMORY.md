@@ -1,3 +1,0 @@
-- [工作AI全部技能索引](project_skills_overview.md) — E:\工作AI 项目中全部 39 个 OpenCode 技能完整索引，涵盖视频生产、酒店经营、文档演示、开发工具、元能力、高级开发流程、UI/UX设计、系统增强
-- [中文交流](user_chinese_only.md) — 所有交流必须使用中文
-- [NotebookLM使用说明](howto_notebooklm.md) — 禁止pip install，用 python "C:\Users\周通\nblm.py"调用
