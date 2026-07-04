@@ -1,0 +1,69 @@
+Feishu/
+app/
+*.pyc
+__pycache__/
+*.whl
+*.7z
+*.log
+*.txt
+node_modules/
+.vite/
+dist/
+build/
+.next/
+
+# 输出目录（保留目录结构但忽略内容）
+outputs/
+output/**
+
+# 临时文件
+临时文件/
+temp/
+tmp/
+*.tmp
+
+# 会话文件
+claude-sessions/
+codex-sessions/
+hermes-sessions/
+.opencode/plans/
+.opencode/sessions/
+
+# 模型文件
+models/**
+
+# 工具软件
+tools/**
+!tools/*.md
+
+# 剪映相关
+JianyingPro Drafts/**
+JianyingPro Presets/**
+JianyingPro Materials/**
+
+# 视频制作中间文件
+视频制作/中间文件/**
+视频制作/*.mp3
+视频制作/*.wav
+
+# OCR/临时文本
+lark-auth-qr.png
+nlm_cookies.json
+start-all.vbs
+hello*.txt
+test.txt
+
+# 图表动画中间帧（大文件）
+charts/animated/
+
+# bot 运行时文件
+bot/node_modules/
+bot/package-lock.json
+
+# 独立项目目录（不作为 git 子模块跟踪）
+otterwiki/
+stt/
+jianying-editor-skill/
+background.js
+popup.js
+manifest.json

@@ -1,0 +1,17 @@
+﻿[
+  {
+    "id": 1,
+    "prompt": "鎻愬彇杩欐閰嶉煶闊抽鐨勫瓧骞曪細outputs/audio/voiceover.mp3锛岀敓鎴怱RT鏂囦欢",
+    "expected": "SRT瀛楀箷鍒?outputs/subtitles/锛屽惈鏃堕棿杞村拰涓枃鏂囨湰锛孎unASR鏍囧噯璇嗗埆"
+  },
+  {
+    "id": 2,
+    "prompt": "鎴戞湁涓€涓璋堝綍闊?outputs/audio/interview.mp3锛屽凡鐭ラ€愬瓧绋垮湪 outputs/transcript.txt锛屽仛鏃堕棿杞村榻愮敓鎴愮簿纭瓧骞?,
+    "expected": "瀛楃骇鏃堕棿杞碨RT瀛楀箷锛屽榻愬凡鐭ユ枃瀛椾笌闊抽鏃堕棿鐐?
+  },
+  {
+    "id": 3,
+    "prompt": "鎵归噺澶勭悊 outputs/audio/ 鐩綍涓嬫墍鏈塎P3鏂囦欢锛屾瘡涓敓鎴愬搴旂殑SRT瀛楀箷",
+    "expected": "鎵归噺SRT瀛楀箷鏂囦欢锛屾瘡闊抽瀵瑰簲涓€涓?outputs/subtitles/ 鏂囦欢锛屾壒閲忓鐞?
+  }
+]

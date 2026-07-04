@@ -1,0 +1,122 @@
+﻿timestamp	commit	skill	old_score	new_score	status	dimension	note	eval_mode
+2026-05-17T08:56	baseline	presentation	-	43.8	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	mind-map	-	48.1	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	document-excel	-	43.6	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	document-word	-	46.1	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	document-pdf	-	45.1	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	test-driven-development	-	83.9	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	systematic-debugging	-	83.4	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	code-refactor	-	38.1	baseline	-	初始评估	dry_run
+2026-05-17T08:56	baseline	requesting-code-review	-	68.9	baseline	-	初始评估	dry_run
+2026-05-17T09:03	baseline	frontend-design	-	38.8	baseline	-	初始评估	dry_run
+2026-05-17T09:15	96a614b	frontend-design	38.8	53.2	keep	指令具体性+边界条件覆盖	流程补充参数规格+异常处理3条fallback	dry_run
+2026-05-17T09:02	14e26bf	prompt-optimizer	38.1	49.0	keep	边界条件覆盖	补充4条异常处理规则，每步骤明确输入输出	dry_run
+2026-05-17T09:10	baseline	ralph-cycle	-	30.3	baseline	-	初始评估	dry_run
+2026-05-17T09:10	14e26bf	ralph-cycle	30.3	34.6	keep	检查点设计	新增步骤1和步骤5的用户确认检查点	dry_run
+2026-05-17T09:05	0ff837e	prompt-optimizer	49.0	58.8	keep	边界条件覆盖	补充6种边界情况处理，提升鲁棒性	dry_run
+2026-05-17T09:12	6944b24	ralph-cycle	34.6	41.6	keep	边界条件覆盖	补充4种异常场景：测试反复失败/用户拒绝/前置阻塞/Git冲突	dry_run2026-05-17T09:08	92d0cbe	prompt-optimizer	58.8	62.8	keep	检查点设计	添加翻译/大幅改写/格式变更的确认点	dry_run
+2026-05-17T09:18	f74fb9f	frontend-design	53.2	55.3	keep	检查点设计	编码前增加用户确认环节	dry_run
+2026-05-17T09:15	6d35893	ralph-cycle	41.6	47.6	keep	指令具体性	为各步骤补充具体工具名和命令，精简格式控制体积	dry_run
+2026-05-17T09:18	baseline	hotel-docs	-	36.6	baseline	-	初始评估	dry_run
+2026-05-17T09:18	76942e1	hotel-docs	36.6	44.1	keep	检查点设计	新增生成后确认/迭代调整流程和异常处理	dry_run
+2026-05-17T09:20	157c84a	document-excel	43.6	52.3	keep	工作流清晰度	功能列表重构为5步有序流程	dry_run
+2026-05-17T09:12	157c84a	code-refactor	38.1	48.9	keep	工作流清晰度	展开为3步流程，每步指定工具和具体操作	dry_run
+2026-05-17T09:20	3529250	hotel-docs	44.1	45.6	keep	资源整合度	添加 test-prompts.json 资源引用	dry_run
+2026-05-17T09:23	6235cd4	hotel-docs	45.6	50.6	keep	边界条件覆盖	扩展异常处理场景并精简格式控制体积	dry_run
+2026-05-17T09:16	99b9935	code-refactor	48.9	54.9	keep	边界条件覆盖	补充文件不存在/无需修改/编译失败的fallback	dry_run
+2026-05-17T09:23	27b524a	document-excel	52.3	56.3	keep	边界条件覆盖	新增3条异常处理	dry_run
+2026-05-17T09:25	46c032f	document-excel	56.3	58.4	keep	检查点设计	生成前增加用户确认	dry_run
+2026-05-17T09:19	603c2c0	code-refactor	54.9	58.9	keep	检查点设计	重构前确认备份/批量逐个确认	dry_run
+2026-05-17T09:25	343b9e0	presentation	43.8	50.6	keep	边界条件覆盖	新增5种异常场景的fallback处理	dry_run
+2026-05-17T09:26	1102f57	presentation	50.6	58.1	keep	指令具体性	添加python-pptx代码示例和输出路径规则	dry_run
+2026-05-17T09:27	f658a53	presentation	58.1	64.2	keep	检查点设计	新增4个检查点+3轮迭代限制	dry_run
+2026-05-17T09:28	efd3efa	document-pdf	45.1	48.7	keep	工作流清晰度	重构5步有序流程+操作对照表	dry_run
+2026-05-17T09:29	8b46666	document-pdf	48.7	58.7	keep	边界条件覆盖	新增6条异常处理场景	dry_run
+2026-05-17T09:30	1b2f2fd	document-pdf	58.7	62.2	keep	检查点设计	6步流程嵌入4个用户确认点	dry_run
+2026-05-17T09:26	faf18db	document-word	46.1	52.0	keep	工作流清晰度	新增6步有序工作流，每步注明输入/工具/输出	dry_run
+2026-05-17T09:28	baseline	skill-manager	-	50.6	baseline	-	初始评估	dry_run
+2026-05-17T09:46	da9e1c9	skill-manager	50.6	57.1	keep	边界条件覆盖	7条紧凑边界场景：skills.sh不可达/目录冲突/npx失败等	dry_run
+2026-05-17T09:47	b865c88	skill-manager	57.1	62.6	keep	检查点设计	4操作嵌入紧凑确认：展示→确认→执行	dry_run
+2026-05-17T09:34	5fd640b	document-word	52.0	55.5	keep	检查点设计	新增3处用户确认检查点，精简体积至145%	dry_run
+2026-05-17T09:34	f86199c	document-word	55.5	60.5	keep	边界条件覆盖	新增5条异常处理场景，精简至98%	dry_run
+2026-05-17T09:48	779716e	mind-map	48.1	51.5	keep	工作流清晰度	5步工作流细化输入/工具/输出，增加图表选择决策规则	dry_run
+2026-05-17T09:48	ffcaada	mind-map	51.5	55.5	keep	检查点设计	Step1/2/5新增3处用户确认检查点	dry_run
+2026-05-17T09:48	7a2d909	mind-map	55.5	60.5	keep	边界条件覆盖	新增6条异常处理，精简至117%	dry_run
+2026-05-17T09:49	baseline	hotel-bi	-	57.6	baseline	-	初始评估	dry_run
+2026-05-17T09:50	8f7db5c	hotel-bi	57.6	68.6	keep	检查点设计+工作流清晰度	6步工作流嵌入3处用户确认 d ry_run
+2026-05-17T09:51	ac6705d	hotel-bi	68.6	73.8	keep	边界条件覆盖	6条紧凑异常场景，体积控制在149%	dry_run
+2026-05-17T10:07	88fc40c	executing-plans	66.1	72.0	keep	检查点设计	Step1/2/3新增3处用户确认检查点+阻塞处理检查点	dry_run
+2026-05-17T09:06	704f318	speech-recognition	71.6	73.7	keep	检查点设计	新增3处用户确认检查点	dry_run
+2026-05-17T10:13	eb0b3f3	executing-plans	72.0	76.0	keep	指令具体性	添加对话示例+工具命令引用+验证状态标记	dry_run
+2026-05-17T10:16	01fa11c	executing-plans	76.0	78.0	keep	边界条件覆盖	添加6种异常恢复场景：文件缺失/合并冲突/无测试框架/超时/中断恢复/权限	dry_run
+2026-05-17T10:20	43911a3	requesting-code-review	68.9	76.0	keep	边界条件覆盖+检查点设计	新增6条异常恢复+3处检查点(范围确认/结果汇报/修复确认)	dry_run
+2026-05-17T09:08	1f565fb	speech-recognition	73.7	75.7	keep	边界条件覆盖	补充8种边界场景fallback处理	dry_run
+2026-05-17T10:21	ca7a085	ruflo-automation	72.0	78.5	keep	检查点设计	新增5处操作前用户确认检查点（记忆/Worker/Autopilot/蜂巢/路由）	dry_run
+2026-05-17T10:21	88fc40c	ruflo-automation	78.5	82.0	keep	边界条件覆盖	补充7种异常场景（MCP断开/参数无效/死锁/节点断联/超时/API503/空数据）	dry_run
+2026-05-17T10:21	9cf4a25	ruflo-automation	82.0	84.0	keep	工作流清晰度+资源整合度	新增快速决策路径表+测试用例索引	dry_run
+2026-05-17T10:21	5212d33	web-scraper	73.6	79.5	keep	检查点设计	新增5处操作前用户确认检查点（抓取/爬取/搜索/提取/导出）	dry_run
+2026-05-17T10:21	5a378ec	web-scraper	79.5	82.5	keep	资源整合度	新增测试用例索引+丰富hotel-bi集成路径	dry_run
+2026-05-17T10:21	43911a3	web-scraper	82.5	86.0	keep	边界条件覆盖	补充8种异常场景（API不可用/配额耗尽/反爬拦截/死循环/解析失败/空结果/Excel失败/编码乱码）	dry_run
+2026-05-17T10:26	0992694	requesting-code-review	76.0	81.0	keep	工作流清晰度+指令具体性	添加步骤I/O表格+细化各步指令+更新示例对齐6步流程	dry_run
+2026-05-17T09:10	003d11b	speech-recognition	75.7	77.2	keep	指令具体性	代码增加路径验证+SRT函数+格式规范	dry_run
+2026-05-17T10:31	d3b26c7	requesting-code-review	81.0	83.0	keep	整体架构+资源整合度	中文目的声明+模板路径明确引用+派发步骤细化	dry_run
+2026-05-17T09:12	9f5e8df	image-generator	71.6	73.7	keep	检查点设计	新增3处用户确认检查点	dry_run
+2026-05-17T09:14	4acf98d	image-generator	73.7	75.7	keep	边界条件覆盖	补充7种边界场景fallback处理	dry_run
+2026-05-17T09:16	5cf0ed8	image-generator	75.7	77.2	keep	指令具体性	完善ComfyUI工作流注入+字体降级+目录创建	dry_run
+2026-05-17T10:45	fa7ec46	audio-tts	74.6	78.0	keep	检查点设计	新增3处用户确认点(需求/音色/输出前)	eval
+2026-05-17T10:45	0f29302	content-writer	77.5	80.5	keep	检查点设计	新增3处用户确认点(模式/预览/写入)	eval
+2026-05-17T10:48	4bc06a5	ui-ux-pro-max	79.9	84.0	keep	边界条件覆盖	补充8种边界场景异常处理	dry_run
+2026-05-17T10:50	f74b516	audio-tts	78.0	80.5	keep	边界条件覆盖	新增8种边界场景(网络/FFmpeg/空文本/目录/分段/音色/超长/缓存)	eval
+2026-05-17T10:50	c31c8f4	content-writer	80.5	83.0	keep	边界条件覆盖	新增8种边界场景(空文本/图片/模糊/写入失败/迭代/超限/字数/非中文)	eval
+2026-05-17T10:55	c529144	audio-tts	80.5	83.5	keep	工作流清晰度	重构为5步输入-工具-输出表格，集成检查点	round3
+2026-05-17T10:55	a4d0d7f	content-writer	83.0	86.0	keep	工作流清晰度	重构为每模式输入-操作-输出表格，集成检查点	round3
+2026-05-17T10:53	0ef5b96	ui-ux-pro-max	84.0	88.0	keep	检查点设计	新增3处用户确认检查点	dry_run
+2026-05-17T10:53	8afc5df	ui-ux-pro-max	88.0	91.0	keep	工作流清晰度	各步骤补充输入/输出标注	dry_run
+2026-05-17T11:00	b090764	systematic-debugging	83.4	85.5	keep	检查点设计	新增4个用户确认检查点	dry_run
+2026-05-17T11:01	4bc06a5	systematic-debugging	85.5	87.5	keep	边界条件覆盖	新增6种边界场景处理表	dry_run
+2026-05-17T11:02	dee8673	systematic-debugging	87.5	89.0	keep	指令具体性	添加常用诊断命令参考表	dry_run
+2026-05-17T11:03	cbf552c	test-driven-development	83.9	86.0	keep	检查点设计	新增4个用户确认检查点	dry_run
+2026-05-17T11:04	f724530	test-driven-development	86.0	88.0	keep	边界条件覆盖	新增6种边界场景处理	dry_run
+2026-05-17T11:05	528874b	test-driven-development	88.0	89.5	keep	资源整合度	新增资源引用表	dry_run
+2026-05-17T11:06	991c1b4	using-superpowers	84.7	86.2	keep	资源整合度	新增资源引用表	dry_run
+2026-05-17T11:07	d428023	using-superpowers	86.2	88.3	keep	检查点设计	新增4个用户确认检查点	dry_run
+2026-05-17T11:08	4686270	using-superpowers	88.3	90.3	keep	边界条件覆盖	新增5种边界场景处理	dry_run
+2026-05-17T10:55	263bf20	dispatching-parallel-agents	82.6	86.2	keep	资源整合度	新增资源集成表引用test-prompts.json+3关联Skill	dry_run
+2026-05-17T10:55	59d6941	dispatching-parallel-agents	86.2	90.0	keep	检查点设计	新增3处用户确认检查点	dry_run
+2026-05-17T10:55	0683e56	dispatching-parallel-agents	90.0	93.0	keep	边界条件覆盖	新增7种异常场景处理	dry_run
+
+2026-05-17T11:01	fe078f0	finishing-a-development-branch	90.2	91.7	keep	资源整合度	新增test-prompts.json引用+关联skill链接	dry_run
+2026-05-17T11:01	fe078f0	finishing-a-development-branch	91.7	93.1	keep	检查点设计	新增合并前确认+PR前确认检查点	dry_run
+2026-05-17T11:01	0016f85	receiving-code-review	87.3	88.8	keep	检查点设计	新增3处操作前用户确认检查点(实施前/推回前/修复后)	dry_run
+2026-05-17T11:01	ccf06c0	brainstorming	88.5	89.8	keep	资源整合度	新增资源速查表关联test-prompts.json/visual-companion/docs目录	dry_run
+2026-05-17T11:20	1d64351	verification-before-completion	96.7	98.1	keep	资源整合度	新增关联资源表(test-prompts.json+2关联skill)	dry_run
+2026-05-17T12:00	357154d	video-factory	89.1	91.6	keep	检查点设计	新增4处用户确认检查点+跳过条件表	eval
+2026-05-17T12:01	ed7061c	writing-plans	89.1	91.1	keep	Frontmatter质量	补充license/compatibility/allowed-tools/metadata	eval
+2026-05-17T12:02	b353da8	video-factory	91.6	93.6	keep	边界条件覆盖	新增7种异常场景处理表(diffusers/网络/FFmpeg/磁盘/文件/MoviePy/配音)	eval
+2026-05-17T12:02	b353da8	writing-plans	91.1	93.6	keep	边界条件覆盖	新增6种异常处理(拒绝/测试框架/路径/冲突/变更/依赖)	eval
+2026-05-17T12:03	31dc728	video-factory	93.6	95.1	keep	工作流清晰度	新增6步流程速查表(输入/工具/输出/检查点)	eval
+2026-05-17T12:03	31dc728	writing-plans	93.6	96.1	keep	资源整合度+内容中文化	全篇中文翻译+test-prompts引用+集成指引表	eval
+2026-05-17T11:22	6af1725	verification-before-completion	98.1	98.8	keep	检查点设计	Gate Function新增Step0用户确认环节	dry_run
+2026-05-17T11:25	41f98ee	impeccable	96.8	97.5	keep	检查点设计	Setup新增Step3用户确认环节(确认后执行)	dry_run
+
+2026-05-17T11:09	9ecd009	finishing-a-development-branch	90.2	91.7	keep	资源整合度	新增test-prompts.json引用+关联skill链接	dry_run
+
+2026-05-17T11:09	fe078f0	finishing-a-development-branch	91.7	93.1	keep	检查点设计	新增合并前确认+PR前确认检查点	dry_run
+
+2026-05-17T11:09	add4ae4	writing-skills	90.9	93.0	keep	检查点设计	RED/GREEN/REFACTOR各阶段新增用户确认检查点	dry_run
+
+2026-05-17T11:09	fcf3735	writing-skills	93.0	93.5	keep	资源整合度	新增test-prompts.json+资源引用表	dry_run
+
+2026-05-17T11:09	0cb7247	using-git-worktrees	91.3	92.3	keep	资源整合度	新增test-prompts.json+关联skill引用	dry_run
+
+2026-05-17T11:09	a7de6d9	using-git-worktrees	92.3	93.0	keep	检查点设计	新增创建worktree前确认检查点	dry_run
+2026-05-17T11:28	6c1f618	subagent-driven-development	98.7	99.4	keep	检查点设计	任务提取后新增用户确认环节(展示任务列表→等待确认→再派发)	dry_run
+2026-05-17T11:11	cd497a3	receiving-code-review	88.8	90.8	keep	边界条件覆盖	新增4种边界场景(矛盾反馈/长列表/冲突reviewer/reviewer不可达)	dry_run
+2026-05-17T11:11	cd497a3	brainstorming	89.8	92.8	keep	边界条件覆盖	新增4种边界场景(跳过设计/需求变动/全否定/范围不明)	dry_run
+2026-05-17T11:13	395d3c7	receiving-code-review	90.8	92.8	keep	资源整合度	新增资源速查表(test-prompts.json+2关联skill)	dry_run
+2026-05-17T11:13	395d3c7	brainstorming	92.8	94.3	keep	指令具体性	补充多选提问/范围分解具体示例	dry_run
+2026-05-19T09:47	baseline	data-collector	-	71.0	baseline	-	初始评估(手动dry_run)	dry_run
+2026-05-19T09:47	baseline	fb-cost-control	-	75.0	baseline	-	初始评估(手动dry_run)	dry_run
+2026-05-19T09:47	baseline	code-doctor	-	76.0	baseline	-	初始评估(手动dry_run)	dry_run
+2026-05-19T09:47	baseline	darwin-skill	-	91.0	baseline	-	初始评估(手动dry_run)	dry_run
+2026-05-19T09:47	baseline	nlm-skill	-	76.0	baseline	-	初始评估(手动dry_run)	dry_run

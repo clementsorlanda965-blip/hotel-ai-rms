@@ -1,0 +1,22 @@
+model_list:
+  - model_name: deepseek-chat
+    litellm_params:
+      model: openai/deepseek-v4-flash
+      api_key: sk-2b1524f7492a4ccfab9ee924fc173397
+      api_base: https://api.deepseek.com/v1
+  - model_name: deepseek-v4-pro
+    litellm_params:
+      model: openai/deepseek-v4-pro
+      api_key: sk-2b1524f7492a4ccfab9ee924fc173397
+      api_base: https://api.deepseek.com/v1
+  - model_name: deepseek-v4-flash
+    litellm_params:
+      model: openai/deepseek-v4-flash
+      api_key: sk-2b1524f7492a4ccfab9ee924fc173397
+      api_base: https://api.deepseek.com/v1
+
+router_settings:
+  routing_strategy: usage-based
+
+general_settings:
+  master_key: sk-local-4000

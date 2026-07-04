@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "notebooklm": {
+      "type": "local",
+      "command": "notebooklm-mcp"
+    }
+  }
+}

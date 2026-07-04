@@ -1,0 +1,1 @@
+{"name":"claude-feishu-bot","version":"1.0.0","type":"module","main":"index.js","scripts":{"start":"node index.js"},"dependencies":{"@larksuiteoapi/node-sdk":"^1.40.0","tree-kill":"^1.2.2"}}

@@ -1,0 +1,5 @@
+﻿[
+  {"id": 1, "prompt": "甯垜鍒涘缓涓€涓棰戝瓧骞曠敓鎴愮殑skill", "expected": "鐞嗚В闇€姹傚悗鎸塷pencode瑙勮寖鐢熸垚SKILL.md锛屽惈name銆乨escription鍜岃Е鍙戝叧閿瘝"},
+  {"id": 2, "prompt": "鎼滀竴涓嬫湁娌℃湁濂界敤鐨勭埇铏玸kill", "expected": "鎼滅储GitHub topics鍜宻kills.sh锛屾寜鍏煎鎬у拰娲昏穬搴︽帹鑽愭妧鑳?},
+  {"id": 3, "prompt": "甯垜浼樺寲涓€涓嬬幇鏈夌殑鍓嶇璁捐skill", "expected": "璇诲彇鐜版湁SKILL.md锛屾鏌ヨ鑼冪鍚堝害鍜岃Е鍙戣瘝瑕嗙洊锛屾彁鍑烘敼杩涘缓璁?}
+]

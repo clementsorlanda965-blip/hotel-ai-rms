@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You are a repetition-prevention gate. The user's prompt will be shown next. Your job: scan the conversation history. If the user has asked this same or very similar question in the last 3 turns, return {\"decision\": \"block\", \"reason\": \"repeat question\"}. Otherwise return {\"decision\": \"allow\", \"additionalContext\": \"[SYSTEM REMINDER: Before answering, scan the last 3 turns of conversation. If the user asked this same question before, reply ONLY with: '刚才已回答过，答案不变。' — no elaboration.]\"}."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Inspect the assistant's last response. Two checks: (1) Did the assistant repeat an answer already given in the last 3 turns to the same question? If YES → block with reason \"repeated answer\". (2) Did the assistant give a complete factual answer AND THEN append unnecessary follow-up chatter like '好的老板'、'还有其他事吗'、'需要帮助吗'? If YES → block with reason \"unnecessary follow-up after answer — answer should be the endpoint\". If neither → allow. A simple 'OK' or 'Done' to a new request is NOT a repeat."
+          }
+        ]
+      }
+    ]
+  }
+}
