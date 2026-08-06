@@ -6,13 +6,14 @@ __pycache__/
 *.7z
 *.log
 *.txt
+!requirements.txt
 node_modules/
 .vite/
 dist/
 build/
 .next/
 
-# 输出目录（保留目录结构但忽略内容）
+# 输出目录
 outputs/
 output/**
 
@@ -21,6 +22,34 @@ output/**
 temp/
 tmp/
 *.tmp
+*_state.json
+*_report.json
+*_verification.json
+missing_*.json
+extra_*.json
+all_nodes*.json
+all_duplicates*.json
+dir_*.json
+leaf_*.json
+duplicates_*.json
+obsidian_*.json
+comparison_report.json
+final_report.json
+audit_report.json
+cleanup_report.json
+scan_result.json
+
+# 飞书导出
+feishu_*/
+feishu_*.json
+
+# 临时脚本
+analyze_data.js
+check_progress.py
+check_total.py
+scan_feishu.*
+run_create_v2.py
+feishu_sync_v2.py
 
 # 会话文件
 claude-sessions/
@@ -53,20 +82,43 @@ start-all.vbs
 hello*.txt
 test.txt
 
-# 图表动画中间帧（大文件）
+# 图表动画中间帧
 charts/animated/
 
-# Claude Code 本地配置（Worktree 目录在 .claude/ 内部）
+# Claude Code 本地配置
 .claude/
 
 # bot 运行时文件
 bot/node_modules/
 bot/package-lock.json
 
-# 独立项目目录（不作为 git 子模块跟踪）
+# 独立项目目录
 otterwiki/
 stt/
 jianying-editor-skill/
 background.js
 popup.js
 manifest.json
+
+# 桌面快捷方式 / 私有配置
+*.lnk
+claude-code/
+
+# HTML/DOCX 归档
+HTML文件/
+DOCX文件/
+
+# 配置（密钥等）
+配置设置/
+
+# NotebookLM 浏览器 profile
+chrome_profile_notebooklm/
+
+# opencode 配置
+opencode.json
+
+# 生成的数据库 / CSV / Excel
+*.db
+代码脚本/hotel_ai_rms/ota_real_prices.csv
+酒店管理/数据分析/*.xlsx
+酒店管理/数据分析/*.xls
