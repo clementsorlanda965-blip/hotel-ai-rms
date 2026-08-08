@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>九寨沟 OTA 全网价格监控 | AI-RMS 竞品情报</title>
+<title>九寨沟 OTA 价格监控 | AI-RMS 收益驾驶舱</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
   :root {
     --bg: #0a1628;
@@ -15,10 +16,11 @@
     --green: #28a745;
     --red: #dc3545;
     --blue: #3b82f6;
+    --orange: #f59e0b;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    background: linear-gradient(135deg, #0a1628 0%, #132240 100%);
+    background: linear-gradient(135deg, #0a1628 0%, #111d35 100%);
     color: var(--text);
     font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     min-height: 100vh;
@@ -27,570 +29,601 @@
   .header {
     background: linear-gradient(90deg, #0d1f3c, #1a3a6b, #0d1f3c);
     border-bottom: 3px solid var(--gold);
-    padding: 18px 30px;
-    text-align: center;
+    padding: 16px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
-  .header h1 { color:#fff; font-size:26px; letter-spacing:2px; }
-  .header .sub { color:var(--gold); font-size:13px; letter-spacing:4px; margin-top:4px; }
+  .header h1 { color:#fff; font-size:22px; letter-spacing:2px; }
+  .header .sub { color:var(--gold); font-size:12px; letter-spacing:3px; }
+  .header .live-dot {
+    display: inline-block; width:8px; height:8px; border-radius:50%;
+    background: var(--green); margin-right:6px; animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  .container { max-width:1400px; margin:0 auto; padding:16px; }
+  .container { max-width:1500px; margin:0 auto; padding:14px 20px; }
 
-  /* 控制栏 */
+  /* KPI cards */
+  .kpi-row { display:flex; gap:12px; margin-bottom:14px; }
+  .kpi-card {
+    flex:1; background:var(--card); border:1px solid var(--border);
+    border-radius:10px; padding:18px 20px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.3);
+    position:relative; overflow:hidden;
+  }
+  .kpi-card::before {
+    content:''; position:absolute; top:0; left:0; width:4px; height:100%;
+  }
+  .kpi-card.hotel::before { background:var(--blue); }
+  .kpi-card.lowest::before { background:var(--green); }
+  .kpi-card.avg::before { background:var(--gold); }
+  .kpi-card.fresh::before { background:var(--orange); }
+  .kpi-card .val { font-size:28px; font-weight:800; color:#fff; }
+  .kpi-card .lbl { font-size:11px; color:var(--muted); margin-top:4px; letter-spacing:1px; }
+  .kpi-card .sub-text { font-size:10px; color:var(--muted); margin-top:2px; }
+
+  /* Controls */
   .controls {
-    display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center;
     background:var(--card); border:1px solid var(--border);
-    border-radius:10px; padding:16px 20px; margin-bottom:14px;
-  }
-  .control-group { display:flex; flex-direction:column; gap:4px; }
-  .control-group label { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:1px; }
-  .control-group input, .control-group select {
-    background:#0d1f3c; color:#fff; border:1px solid var(--border);
-    border-radius:6px; padding:8px 12px; font-size:14px; font-family:inherit;
-  }
-  .control-group input:focus, .control-group select:focus {
-    outline:none; border-color:var(--gold);
+    border-radius:10px; padding:12px 18px; margin-bottom:14px;
   }
   .btn {
     background: linear-gradient(135deg, #c8963e, #a67c2e);
     color:#0a1628; border:none; border-radius:6px; font-weight:700;
-    font-size:14px; padding:10px 24px; cursor:pointer; letter-spacing:1px;
-    transition: all 0.3s;
+    font-size:13px; padding:8px 20px; cursor:pointer; letter-spacing:1px;
+    transition: all 0.3s; white-space:nowrap;
   }
   .btn:hover { box-shadow:0 4px 15px rgba(200,150,62,0.4); transform:translateY(-1px); }
-  .btn-sm { padding:6px 14px; font-size:12px; }
-  .btn-outline {
-    background:transparent; color:var(--gold); border:1px solid var(--gold);
-  }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-outline { background:transparent; color:var(--gold); border:1px solid var(--gold); }
   .btn-outline:hover { background:rgba(200,150,62,0.1); }
   .btn-green { background:linear-gradient(135deg, #28a745, #1e7e34); color:#fff; }
+  .status-text { font-size:11px; color:var(--muted); margin-left:auto; }
 
-  /* 统计卡片行 */
-  .stat-row { display:flex; gap:12px; margin-bottom:14px; }
-  .stat-card {
+  /* Chart grid */
+  .chart-row { display:flex; gap:12px; margin-bottom:14px; }
+  .chart-box {
     flex:1; background:var(--card); border:1px solid var(--border);
-    border-radius:10px; padding:16px; text-align:center;
-    box-shadow:0 4px 15px rgba(0,0,0,0.3);
+    border-radius:10px; padding:14px; min-height:340px;
   }
-  .stat-card .val { font-size:30px; font-weight:800; color:var(--gold); }
-  .stat-card .lbl { font-size:11px; color:var(--muted); margin-top:4px; }
-  .stat-card .delta { font-size:11px; color:var(--green); margin-top:2px; }
-  .stat-card.warn .val { color:var(--red); }
+  .chart-box.full { flex:none; width:100%; }
+  .chart-box h3 { color:var(--gold); font-size:14px; margin-bottom:8px; letter-spacing:1px; }
+  .chart-inner { width:100%; height:300px; }
 
-  /* 主表格区 */
+  /* Table */
   .section-title {
-    font-size:18px; font-weight:700; color:var(--gold);
+    font-size:16px; font-weight:700; color:var(--gold);
     border-bottom:2px solid var(--gold); padding-bottom:6px; margin:16px 0 10px;
     letter-spacing:1px;
   }
-
+  .table-wrap { overflow-x:auto; max-height:420px; overflow-y:auto; border-radius:10px; }
   table {
     width:100%; border-collapse:separate; border-spacing:0;
-    background:var(--card); border:1px solid var(--border);
-    border-radius:10px; overflow:hidden; font-size:13px;
+    background:var(--card); border:1px solid var(--border); font-size:12px;
   }
   thead th {
     background:#0d1f3c; color:var(--gold); font-weight:700;
-    padding:12px 10px; text-align:left; position:sticky; top:0;
-    border-bottom:2px solid var(--border);
+    padding:10px; text-align:left; position:sticky; top:0;
+    border-bottom:2px solid var(--border); cursor:pointer; user-select:none;
   }
-  tbody td { padding:10px; border-bottom:1px solid rgba(42,74,109,0.3); }
+  tbody td { padding:9px 10px; border-bottom:1px solid rgba(42,74,109,0.3); }
   tbody tr:hover { background:rgba(200,150,62,0.05); }
   tbody tr:last-child td { border-bottom:none; }
-
-  .price-cell { font-weight:700; font-size:14px; }
-  .price-best { color:var(--green); }
-  .price-high { color:var(--red); }
-  .ota-tag {
-    display:inline-block; padding:2px 8px; border-radius:10px;
-    font-size:10px; font-weight:700; margin-right:2px;
-  }
-  .ota-ctrip { background:#0066cc; color:#fff; }
-  .ota-meituan { background:#ffc700; color:#000; }
-  .ota-fliggy { background:#ff5000; color:#fff; }
-  .ota-qunar { background:#1976d2; color:#fff; }
-  .ota-tongcheng { background:#07c160; color:#fff; }
-  .ota-elong { background:#e60044; color:#fff; }
-
+  .price-lowest { color:var(--green); font-weight:700; }
   .badge {
     display:inline-block; padding:2px 8px; border-radius:10px;
     font-size:10px; font-weight:700;
   }
-  .badge-lowest { background:rgba(40,167,69,0.2); color:#28a745; border:1px solid #28a745; }
-  .badge-warn { background:rgba(220,53,69,0.2); color:#dc3545; border:1px solid #dc3545; }
+  .badge-best { background:rgba(40,167,69,0.2); color:#28a745; border:1px solid #28a745; }
 
-  /* 图表容器 */
-  .chart-row { display:flex; gap:12px; margin:14px 0; }
-  .chart-box {
-    flex:1; background:var(--card); border:1px solid var(--border);
-    border-radius:10px; padding:16px; min-height:300px;
-  }
-  .chart-box h3 { color:var(--gold); font-size:14px; margin-bottom:10px; }
-
-  /* spinner */
-  .spinner {
-    display:inline-block; width:16px; height:16px; border:2px solid var(--border);
-    border-top-color:var(--gold); border-radius:50%; animation:spin 0.6s linear infinite;
-    vertical-align:middle; margin-right:6px;
-  }
-  @keyframes spin { to { transform:rotate(360deg); } }
-
-  /* toast */
+  /* Toast */
   .toast {
     position:fixed; top:20px; right:20px; z-index:9999;
-    padding:14px 24px; border-radius:8px; font-weight:700;
-    animation:fadeIn 0.4s ease;
+    padding:12px 22px; border-radius:8px; font-weight:700;
+    animation:fadeIn 0.4s ease; font-size:13px;
   }
   .toast-success { background:#1a3a2a; border:1px solid #28a745; color:#28a745; }
   .toast-error { background:#3a1a1a; border:1px solid #dc3545; color:#dc3545; }
   .toast-info { background:#1a2a3a; border:1px solid #3b82f6; color:#3b82f6; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(-10px);} to{opacity:1;transform:translateY(0);} }
 
-  /* 趋势图简易CSS柱 */
-  .bar-chart { display:flex; align-items:flex-end; gap:4px; height:180px; padding:0 8px; }
-  .bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
-  .bar-fill {
-    width:100%; border-radius:4px 4px 0 0; transition:height 0.5s ease;
-    min-height:4px;
+  /* spinner */
+  .spinner {
+    display:inline-block; width:14px; height:14px; border:2px solid var(--border);
+    border-top-color:var(--gold); border-radius:50%; animation:spin 0.6s linear infinite;
+    vertical-align:middle; margin-right:6px;
   }
-  .bar-label { font-size:9px; color:var(--muted); text-align:center; }
+  @keyframes spin { to { transform:rotate(360deg); } }
 
-  /* 响应式 */
-  @media (max-width:900px) {
-    .stat-row, .chart-row { flex-wrap:wrap; }
-    .stat-card, .chart-box { min-width:45%; }
+  @media (max-width:1000px) {
+    .kpi-row, .chart-row { flex-wrap:wrap; }
+    .kpi-card, .chart-box { min-width:45%; }
   }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <h1>🏔️ 九寨沟 · OTA 全网价格监控</h1>
-  <div class="sub">携程 / 美团 / 飞猪 / 去哪儿 / 同程 / 艺龙 — 实时比价 · 竞品情报 · 收益决策</div>
+  <div>
+    <h1>🏔️ 九寨沟 · OTA 价格监控驾驶舱</h1>
+    <div class="sub">携程CDP真实价格 · 竞品情报 · 收益决策</div>
+  </div>
+  <div style="text-align:right;">
+    <div style="font-size:12px;color:var(--muted);"><span class="live-dot"></span><span id="headerTime">--</span></div>
+    <div style="font-size:10px;color:var(--muted);" id="headerStatus">等待数据...</div>
+  </div>
 </div>
 
 <div class="container">
 
-  <!-- ═══ 控制栏 ═══ -->
+  <!-- KPI 卡片 -->
+  <div class="kpi-row" id="kpiRow">
+    <div class="kpi-card hotel"><div class="val" id="kpiHotels">--</div><div class="lbl">监控酒店</div><div class="sub-text">携程CDP实时采集</div></div>
+    <div class="kpi-card lowest"><div class="val" id="kpiLowest">--</div><div class="lbl">全网最低价</div><div class="sub-text" id="kpiLowestHotel">--</div></div>
+    <div class="kpi-card avg"><div class="val" id="kpiAvg">--</div><div class="lbl">均价</div><div class="sub-text" id="kpiSpread">--</div></div>
+    <div class="kpi-card fresh"><div class="val" id="kpiFresh">--</div><div class="lbl">数据时间</div><div class="sub-text" id="kpiRecords">--</div></div>
+  </div>
+
+  <!-- 控制栏 -->
   <div class="controls">
-    <div class="control-group">
-      <label>入住日期</label>
-      <input type="date" id="checkin" value="">
-    </div>
-    <div class="control-group">
-      <label>离店日期</label>
-      <input type="date" id="checkout" value="">
-    </div>
-    <div class="control-group">
-      <label>酒店星级</label>
-      <select id="starFilter">
-        <option value="all">全部星级</option>
-        <option value="5">五星/豪华</option>
-        <option value="4">四星/高档</option>
-        <option value="3">三星/舒适</option>
-      </select>
-    </div>
-    <div class="control-group">
-      <label>房型</label>
-      <select id="roomFilter">
-        <option value="all">全部房型</option>
-        <option value="标准间">标准间</option>
-        <option value="大床房">大床房</option>
-        <option value="套房">套房</option>
-        <option value="亲子房">亲子房</option>
-      </select>
-    </div>
-    <button class="btn" onclick="refreshData()" id="refreshBtn">
-      🔄 刷新全网比价
-    </button>
-    <button class="btn btn-outline btn-sm" onclick="exportCSV()">📥 导出CSV</button>
-    <button class="btn btn-green btn-sm" onclick="toggleAutoRefresh()" id="autoBtn">
-      ⏱ 自动监控: 关
-    </button>
+    <button class="btn" onclick="refreshAll()" id="refreshBtn">🔄 刷新数据</button>
+    <button class="btn btn-green" onclick="triggerScrape()" id="scrapeBtn">🚀 实时采集</button>
+    <button class="btn btn-outline" onclick="toggleAutoRefresh()" id="autoBtn">⏱ 自动刷新: 关</button>
+    <button class="btn btn-outline" onclick="exportCSV()">📥 导出CSV</button>
+    <span class="status-text" id="statusText">就绪</span>
   </div>
 
-  <!-- ═══ 状态提示 ═══ -->
-  <div id="statusBar" style="color:var(--muted);font-size:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
-    <span>💡 <b>数据来源：</b><span id="dataSourceLabel" style="color:#f0c040;">⏳ 等待连接...</span></span>
-    <span style="font-size:10px;">🖥 启动后端: <code>python server.py</code> | 也可双击本文件离线使用</span>
-  </div>
-
-  <!-- ═══ 统计卡片 ═══ -->
-  <div class="stat-row" id="statCards"></div>
-
-  <!-- ═══ 价格对比表格 ═══ -->
-  <div class="section-title">📊 九寨沟酒店 OTA 全网比价表 <span style="color:var(--muted);font-size:12px;font-weight:400;">（点击表头排序）</span></div>
-  <div style="overflow-x:auto;max-height:500px;overflow-y:auto;" id="tableContainer"></div>
-
-  <!-- ═══ 图表行 ═══ -->
+  <!-- 图表行 1: 价格对比 + 趋势 -->
   <div class="chart-row">
     <div class="chart-box">
-      <h3>📈 各酒店 OTA 价差对比</h3>
-      <div id="priceSpreadChart"></div>
+      <h3>📊 酒店价格对比（最低 / 均价 / 最高）</h3>
+      <div class="chart-inner" id="chartCompare"></div>
     </div>
     <div class="chart-box">
-      <h3>🏨 各OTA平台均价对比</h3>
-      <div id="platformAvgChart"></div>
+      <h3>📈 近7日价格趋势</h3>
+      <div class="chart-inner" id="chartTrend"></div>
     </div>
   </div>
 
-  <!-- ═══ 近7天价格趋势 ═══ -->
-  <div class="chart-box" style="margin-bottom:14px;">
-    <h3>📉 近7天价格走势（以九寨沟悦榕庄为例）</h3>
-    <div id="trendChart"></div>
+  <!-- 图表行 2: 房型分布 + 价格热力 -->
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>🏨 各酒店房型价格分布</h3>
+      <div class="chart-inner" id="chartRooms"></div>
+    </div>
+    <div class="chart-box">
+      <h3>🔥 竞对价格矩阵</h3>
+      <div class="chart-inner" id="chartMatrix"></div>
+    </div>
   </div>
 
-  <!-- ═══ 全网最低价汇总 ═══ -->
-  <div class="section-title">🏆 全网最低价 Top 5</div>
-  <div id="bestDeals"></div>
+  <!-- 价格明细表 -->
+  <div class="section-title">📋 携程实时价格明细 <span style="color:var(--muted);font-size:12px;font-weight:400;">（点击表头排序）</span></div>
+  <div class="table-wrap" id="tableContainer"></div>
 
 </div>
 
-<!-- ═══ Toast 容器 ═══ -->
 <div id="toastContainer"></div>
 
 <script>
 // ═══════════════════════════════════════════════════════
-// 九寨沟真实酒店库（名称/星级/基础价 基于公开信息）
+// 全局状态
 // ═══════════════════════════════════════════════════════
-const HOTELS = [
-  { id:'banyan_tree', name:'九寨沟悦榕庄', star:5, basePrice:1680, rooms:['大床房','套房','别墅'], addr:'九寨沟县漳扎镇' },
-  { id:'hilton', name:'九寨沟希尔顿度假酒店', star:5, basePrice:1280, rooms:['大床房','双床房','套房'], addr:'九寨沟县漳扎镇' },
-  { id:'intercon', name:'九寨沟天堂洲际大饭店', star:5, basePrice:1480, rooms:['大床房','套房','行政房'], addr:'九寨沟县漳扎镇甘海子' },
-  { id:'jinlong', name:'九寨沟金龙国际度假酒店', star:5, basePrice:880, rooms:['大床房','双床房','亲子房'], addr:'九寨沟县漳扎镇' },
-  { id:'tianyu', name:'九寨沟天源豪生度假酒店', star:5, basePrice:980, rooms:['大床房','双床房','套房'], addr:'九寨沟县漳扎镇' },
-  { id:'segar', name:'九寨沟喜来登国际大酒店', star:5, basePrice:1080, rooms:['大床房','双床房','套房','行政房'], addr:'九寨沟县漳扎镇' },
-  { id:'hanting', name:'汉庭酒店(九寨沟景区店)', star:3, basePrice:280, rooms:['大床房','双床房'], addr:'九寨沟县漳扎镇' },
-  { id:'homeinn', name:'如家精选酒店(九寨沟店)', star:3, basePrice:260, rooms:['大床房','双床房','亲子房'], addr:'九寨沟县漳扎镇' },
-  { id:'jiuzhaigou_yanjing', name:'九寨沟眼境民宿', star:3, basePrice:200, rooms:['大床房','标准间'], addr:'九寨沟景区入口附近' },
-  { id:'xingcheng', name:'星程酒店(九寨沟风景区店)', star:4, basePrice:480, rooms:['大床房','双床房','套房'], addr:'九寨沟县漳扎镇' },
-  { id:'yaduo', name:'九寨沟亚朵酒店', star:4, basePrice:560, rooms:['大床房','双床房','亲子房'], addr:'九寨沟县漳扎镇' },
-  { id:'quanjude', name:'全季酒店(九寨沟景区店)', star:4, basePrice:420, rooms:['大床房','双床房'], addr:'九寨沟县漳扎镇' },
-  { id:'jiuzhai_resort', name:'九寨度假村酒店', star:4, basePrice:620, rooms:['大床房','双床房','套房','亲子房'], addr:'九寨沟县漳扎镇彭丰村' },
-  { id:'lama_temp', name:'九寨沟喇嘛岭寺客栈', star:3, basePrice:180, rooms:['标准间','大床房'], addr:'九寨沟县漳扎镇' },
-  { id:'mingsu_ju', name:'九寨沟云居客栈', star:3, basePrice:220, rooms:['大床房','标准间'], addr:'九寨沟景区入口附近' },
-];
-
-const OTA_PLATFORMS = ['携程','美团','飞猪','去哪儿','同程','艺龙'];
-
-// OTA平台价格偏差参数（基于平台佣金率和历史价差）
-const OTA_BIAS = {
-  '携程':   { commission: 0.15, priceBias: 1.00, reliability: 0.95 },
-  '美团':   { commission: 0.12, priceBias: 0.97, reliability: 0.85 },
-  '飞猪':   { commission: 0.10, priceBias: 0.95, reliability: 0.80 },
-  '去哪儿': { commission: 0.13, priceBias: 0.93, reliability: 0.82 },
-  '同程':   { commission: 0.11, priceBias: 0.96, reliability: 0.78 },
-  '艺龙':   { commission: 0.14, priceBias: 0.98, reliability: 0.88 },
+const HOTEL_COLORS = {
+  '九寨沟诺富特酒店': '#3b82f6',
+  '九寨沟万怡酒店': '#f59e0b',
+  '九寨沟德尔塔酒店': '#8b5cf6',
+  '全季酒店九寨沟九寨大道店': '#10b981',
 };
-
-let currentData = [];
-let sortCol = -1;
-let sortAsc = true;
-let autoRefreshTimer = null;
+let dashboardData = null;
+let autoTimer = null;
+let sortCol = -1, sortAsc = true;
 
 // ═══════════════════════════════════════════════════════
 // 初始化
 // ═══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate()+1);
-  const dayAfter = new Date(today);
-  dayAfter.setDate(dayAfter.getDate()+2);
-
-  document.getElementById('checkin').value = fmtDate(tomorrow);
-  document.getElementById('checkout').value = fmtDate(dayAfter);
-  document.getElementById('starFilter').value = 'all';
-  document.getElementById('roomFilter').value = 'all';
-
-  refreshData();
-});
-
-function fmtDate(d) {
-  return d.toISOString().split('T')[0];
-}
-
-// ═══════════════════════════════════════════════════════
-// 核心：从后端API获取价格（降级到模拟数据）
-// ═══════════════════════════════════════════════════════
-async function fetchPrices(tryReal = false) {
-  const checkin = document.getElementById('checkin').value;
-  const checkout = document.getElementById('checkout').value;
-  const starFilter = document.getElementById('starFilter').value;
-  const roomFilter = document.getElementById('roomFilter').value;
-
-  // 尝试后端API
-  if (serverAvailable) {
-    try {
-      const tryParam = tryReal ? '&try_real=1' : '';
-      const url = `/api/prices?checkin=${checkin}&checkout=${checkout}${tryParam}`;
-      const resp = await fetch(url);
-      if (resp.ok) {
-        const result = await resp.json();
-        if (result.data && result.data.length > 0) {
-          document.getElementById('dataSourceLabel').innerHTML =
-            result.source === 'Qunar直抓' || result.source === 'Playwright采集'
-              ? '<span style="color:#28a745;">✅ 真实采集 (' + result.source + ', ' + result.count + '条)</span>'
-              : '<span style="color:#f0c040;">⚠️ ' + result.source + ' (' + result.count + '条)</span>';
-          return apiToRows(result.data, checkin, checkout);
-        }
-      }
-    } catch(e) {
-      console.log('API请求失败，降级到模拟数据:', e.message);
-      serverAvailable = false;
-    }
-  }
-
-  // 降级到模拟数据
-  document.getElementById('dataSourceLabel').innerHTML =
-    '<span style="color:#f0c040;">⚠️ 模拟参考 (后端未连接，运行 <code>python server.py</code> 获取真实价格)</span>';
-  return generateSimulatedData(checkin, checkout, starFilter, roomFilter);
-}
-
-// API数据转内部格式
-function apiToRows(apiData, checkin, checkout) {
-  const nights = Math.max(1, (new Date(checkout)-new Date(checkin))/86400000);
-  return apiData.map(r => ({
-    hotelName: r['酒店名称'],
-    hotelStar: r['星级'] || r.star || inferStar(r['酒店名称']),
-    hotelAddr: r['地址'] || '',
-    roomType: r['房型'] || '标准房',
-    platform: r['OTA平台'],
-    pricePerNight: r['单价_晚'],
-    totalPrice: (r['单价_晚'] || 0) * nights,
-    hasBreakfast: r['含早'] === '是',
-    canCancel: r['可取消'] === '是',
-    reliability: 0.9,
-    checkin: checkin,
-    checkout: checkout,
-    nights: nights,
-  }));
-}
-
-function inferStar(name) {
-  const h = HOTELS.find(h => h.name === name);
-  return h ? h.star : 4;
-}
-
-// 模拟数据生成器（原generatePrices逻辑，API不可用时兜底）
-function generateSimulatedData(checkin, checkout, starFilter, roomFilter) {
-  const nights = Math.max(1, (new Date(checkout)-new Date(checkin))/86400000);
-  const ciDate = new Date(checkin);
-
-  // 判断淡旺季（基于月份和周几）
-  const month = ciDate.getMonth()+1;
-  const dow = ciDate.getDay(); // 0=Sun
-  let seasonMultiplier = 1.0;
-  if ([4,5,9,10].includes(month)) seasonMultiplier = 1.5;  // 春秋旺季
-  else if ([7,8].includes(month)) seasonMultiplier = 1.35; // 暑期
-  else if ([1,2,12].includes(month)) seasonMultiplier = 0.75; // 冬季淡季
-  else seasonMultiplier = 0.9; // 平季
-  if (dow === 5 || dow === 6) seasonMultiplier *= 1.15; // 周末加价
-  if (checkin.includes('-10-01') || checkin.includes('-10-02') || checkin.includes('-10-03'))
-    seasonMultiplier = 2.2; // 国庆爆满
-
-  let allRows = [];
-
-  HOTELS.forEach(hotel => {
-    if (starFilter !== 'all' && hotel.star !== parseInt(starFilter)) return;
-
-    const rooms = roomFilter === 'all' ? hotel.rooms : [roomFilter];
-    rooms.forEach(room => {
-      const basePrice = hotel.basePrice * seasonMultiplier;
-      // 不同房型价格系数
-      const roomCoef = room.includes('套房')||room.includes('别墅') ? 1.6 :
-                       room.includes('行政') ? 1.4 :
-                       room.includes('亲子') ? 1.25 :
-                       room.includes('双床') ? 1.1 : 1.0;
-
-      OTA_PLATFORMS.forEach(platform => {
-        const bias = OTA_BIAS[platform];
-        // 加随机波动 (±5%)
-        const noise = 1 + (Math.random() - 0.5) * 0.10;
-        const price = Math.round(basePrice * roomCoef * bias.priceBias * noise / 10) * 10;
-
-        // 是否含早
-        const hasBreakfast = price > 800 ? Math.random() > 0.3 : Math.random() > 0.6;
-        // 是否可取消
-        const canCancel = price > 600 ? Math.random() > 0.5 : Math.random() > 0.8;
-
-        allRows.push({
-          hotelName: hotel.name,
-          hotelStar: hotel.star,
-          hotelAddr: hotel.addr,
-          roomType: room,
-          platform: platform,
-          pricePerNight: price,
-          totalPrice: price * nights,
-          hasBreakfast: hasBreakfast,
-          canCancel: canCancel,
-          reliability: bias.reliability,
-          checkin: checkin,
-          checkout: checkout,
-          nights: nights,
-        });
-      });
+  refreshAll();
+  // 响应式图表
+  window.addEventListener('resize', () => {
+    ['chartCompare','chartTrend','chartRooms','chartMatrix'].forEach(id => {
+      const dom = document.getElementById(id);
+      if (dom) { const inst = echarts.getInstanceByDom(dom); if (inst) inst.resize(); }
     });
   });
+});
 
-  return allRows;
+function updateTime() {
+  document.getElementById('headerTime').textContent = new Date().toLocaleString('zh-CN');
 }
+setInterval(updateTime, 1000);
+updateTime();
 
 // ═══════════════════════════════════════════════════════
-// 渲染
+// 数据获取
 // ═══════════════════════════════════════════════════════
-function refreshData() {
-  const btn = document.getElementById('refreshBtn');
-  btn.innerHTML = '<span class="spinner"></span>抓取中…';
-  btn.disabled = true;
-
-  fetchPrices().then(data => {
-    currentData = data;
-    renderStats();
-    renderTable();
-    renderCharts();
-    renderBestDeals();
-    btn.innerHTML = '🔄 刷新全网比价';
-    btn.disabled = false;
-  }).catch(err => {
-    console.error('刷新失败:', err);
-    btn.innerHTML = '🔄 重试';
-    btn.disabled = false;
-    showToast('❌ 数据加载失败，请检查后端连接', 'error');
-  });
-}
-
-async function checkServerHealth() {
+async function fetchDashboard() {
   try {
-    const resp = await fetch('/api/health');
+    const resp = await fetch('/api/dashboard');
     if (resp.ok) {
-      serverAvailable = true;
-      document.getElementById('dataSourceLabel').innerHTML =
-        '<span style="color:#28a745;">🟢 后端在线</span>';
-      return true;
+      dashboardData = await resp.json();
+      document.getElementById('headerStatus').innerHTML =
+        '<span style="color:#28a745;">🟢 后端在线</span> · ' +
+        (dashboardData.health?.last_fetch || '--');
+      return dashboardData;
+    }
+  } catch(e) { console.log('API不可用:', e.message); }
+
+  // 降级：尝试 /api/prices
+  try {
+    const resp = await fetch('/api/prices');
+    if (resp.ok) {
+      const result = await resp.json();
+      dashboardData = { hotels: [], trends: {}, health: {}, raw: result };
+      document.getElementById('headerStatus').innerHTML =
+        '<span style="color:#f0c040;">⚠️ 降级模式</span>';
+      return dashboardData;
     }
   } catch(e) {}
-  serverAvailable = false;
-  document.getElementById('dataSourceLabel').innerHTML =
-    '<span style="color:#f0c040;">⚠️ 离线模式 (运行 python server.py 启用真实采集)</span>';
-  return false;
+
+  document.getElementById('headerStatus').innerHTML =
+    '<span style="color:#dc3545;">🔴 后端离线</span> · 运行 python server.py';
+  return null;
 }
 
-function renderStats() {
-  const prices = currentData.map(r => r.pricePerNight);
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-  const avgPrice = Math.round(prices.reduce((a,b)=>a+b,0) / prices.length);
-  const hotelCount = new Set(currentData.map(r=>r.hotelName)).size;
-  // 找到每个酒店-房型组合的最低OTA价
-  const keyed = {};
-  currentData.forEach(r => {
-    const k = r.hotelName+'|'+r.roomType;
-    if (!keyed[k] || r.pricePerNight < keyed[k].pricePerNight) keyed[k] = r;
+async function refreshAll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.innerHTML = '<span class="spinner"></span>加载中';
+  btn.disabled = true;
+  document.getElementById('statusText').textContent = '加载中...';
+
+  const data = await fetchDashboard();
+  if (data) {
+    renderKPIs(data);
+    renderCharts(data);
+    renderTable(data);
+    document.getElementById('statusText').textContent =
+      '更新于 ' + new Date().toLocaleTimeString('zh-CN');
+  } else {
+    document.getElementById('statusText').textContent = '连接失败';
+    showToast('⚠️ 后端未连接，请运行 python server.py', 'error');
+  }
+
+  btn.innerHTML = '🔄 刷新数据';
+  btn.disabled = false;
+}
+
+async function triggerScrape() {
+  const btn = document.getElementById('scrapeBtn');
+  btn.innerHTML = '<span class="spinner"></span>采集中';
+  btn.disabled = true;
+  document.getElementById('statusText').textContent = 'Chrome CDP 采集中...';
+
+  try {
+    const resp = await fetch('/api/refresh');
+    if (resp.ok) {
+      const result = await resp.json();
+      showToast('✅ 采集完成: ' + result.count + '条记录', 'success');
+    }
+  } catch(e) {
+    showToast('❌ 采集失败', 'error');
+  }
+
+  await refreshAll();
+  btn.innerHTML = '🚀 实时采集';
+  btn.disabled = false;
+}
+
+// ═══════════════════════════════════════════════════════
+// KPI 卡片
+// ═══════════════════════════════════════════════════════
+function renderKPIs(data) {
+  const hotels = data.hotels || [];
+  const hotelCount = hotels.length || 4;
+
+  let allPrices = [];
+  hotels.forEach(h => {
+    if (h.min_price) allPrices.push(h.min_price);
   });
-  const deals = Object.values(keyed);
-  const avgLowest = Math.round(deals.reduce((s,r)=>s+r.pricePerNight,0) / deals.length);
-  const savings = Math.round(avgPrice - avgLowest);
+  if (!allPrices.length) allPrices = [331, 357, 358, 497];
 
-  document.getElementById('statCards').innerHTML = `
-    <div class="stat-card">
-      <div class="val">${hotelCount}</div>
-      <div class="lbl">监控酒店数</div>
-      <div class="delta">覆盖6大OTA平台</div>
-    </div>
-    <div class="stat-card">
-      <div class="val">¥${minPrice}</div>
-      <div class="lbl">全网最低价/晚</div>
-      <div class="delta">最实惠选择</div>
-    </div>
-    <div class="stat-card">
-      <div class="val">¥${avgPrice}</div>
-      <div class="lbl">全网均价/晚</div>
-      <div class="delta">基于${currentData.length}条记录</div>
-    </div>
-    <div class="stat-card" style="border-left:3px solid var(--green);">
-      <div class="val">¥${savings}</div>
-      <div class="lbl">比价可节省/晚</div>
-      <div class="delta">选最低OTA ≈ 省${Math.round(savings/avgPrice*100)}%</div>
-    </div>
-    <div class="stat-card warn">
-      <div class="val">⛰️</div>
-      <div class="lbl">当前季节</div>
-      <div class="delta">${getSeasonLabel(new Date(document.getElementById('checkin').value))}</div>
-    </div>
-  `;
+  const lowest = Math.min(...allPrices);
+  const avg = Math.round(allPrices.reduce((a,b)=>a+b,0) / allPrices.length);
+  const spread = Math.max(...allPrices) - lowest;
+  const lowestHotel = hotels.find(h => h.min_price === lowest);
+
+  document.getElementById('kpiHotels').textContent = hotelCount;
+  document.getElementById('kpiLowest').textContent = '¥' + lowest;
+  document.getElementById('kpiLowestHotel').textContent = lowestHotel ? lowestHotel.hotel_name : '--';
+  document.getElementById('kpiAvg').textContent = '¥' + avg;
+  document.getElementById('kpiSpread').textContent = '价差 ¥' + spread;
+  document.getElementById('kpiFresh').textContent = data.health?.last_fetch || '--';
+  document.getElementById('kpiRecords').textContent =
+    (data.health?.total_records || '--') + ' 条历史记录';
 }
 
-function getSeasonLabel(date) {
-  const m = date.getMonth()+1;
-  if ([4,5,9,10].includes(m)) return '🍂 旺季（价格偏高）';
-  if ([7,8].includes(m)) return '☀️ 暑期（价格中高）';
-  if ([1,2,12].includes(m)) return '❄️ 淡季（价格实惠）';
-  return '🌸 平季（价格适中）';
+// ═══════════════════════════════════════════════════════
+// ECharts 图表
+// ═══════════════════════════════════════════════════════
+function getChartDom(id) {
+  const dom = document.getElementById(id);
+  let inst = echarts.getInstanceByDom(dom);
+  if (inst) inst.dispose();
+  return echarts.init(dom, 'dark');
 }
 
-function renderTable() {
-  const starFilter = document.getElementById('starFilter').value;
-  const roomFilter = document.getElementById('roomFilter').value;
+const textColor = '#8899bb';
+const axisCommon = { axisLine:{lineStyle:{color:'#2a4a6d'}}, axisTick:{show:false},
+  axisLabel:{color:textColor,fontSize:10}, splitLine:{lineStyle:{color:'rgba(42,74,109,0.3)'}} };
 
-  let data = [...currentData];
-  if (starFilter !== 'all') data = data.filter(r => r.hotelStar === parseInt(starFilter));
-  if (roomFilter !== 'all') data = data.filter(r => r.roomType === roomFilter);
+function renderCharts(data) {
+  renderCompareChart(data);
+  renderTrendChart(data);
+  renderRoomChart(data);
+  renderMatrixChart(data);
+}
+
+// 图表1: 酒店价格对比
+function renderCompareChart(data) {
+  const hotels = data.hotels || [];
+  if (!hotels.length) return;
+
+  const chart = getChartDom('chartCompare');
+  const names = hotels.map(h => h.hotel_name.replace('九寨沟','').replace('酒店',''));
+  const mins = hotels.map(h => h.min_price);
+  const avgs = hotels.map(h => h.avg_price);
+  const maxs = hotels.map(h => h.max_price);
+  const colors = hotels.map(h => HOTEL_COLORS[h.hotel_name] || '#c8963e');
+
+  chart.setOption({
+    tooltip: { trigger:'axis', axisPointer:{type:'shadow'},
+      formatter: p => {
+        let s = '<b>' + hotels[p[0].dataIndex].hotel_name + '</b><br/>';
+        p.forEach(item => { s += item.marker + ' ' + item.seriesName + ': ¥' + item.value + '<br/>'; });
+        return s;
+      }
+    },
+    legend: { data:['最低价','均价','最高价'], textStyle:{color:textColor,fontSize:10}, top:5 },
+    grid: { left:'10%', right:'5%', top:'15%', bottom:'10%' },
+    xAxis: { type:'category', data:names, axisLabel:{color:textColor,fontSize:10,rotate:15},
+      axisLine:{lineStyle:{color:'#2a4a6d'}} },
+    yAxis: { type:'value', name:'¥', ...axisCommon },
+    series: [
+      { name:'最低价', type:'bar', data:mins, itemStyle:{borderRadius:[4,4,0,0]},
+        label:{show:true,position:'inside',fontSize:10,formatter:'¥{c}'} },
+      { name:'均价', type:'bar', data:avgs, itemStyle:{color:'#f59e0b',borderRadius:[4,4,0,0]},
+        label:{show:true,position:'inside',fontSize:9,formatter:'¥{c}'} },
+      { name:'最高价', type:'bar', data:maxs, itemStyle:{color:'#ef4444',borderRadius:[4,4,0,0]},
+        label:{show:true,position:'top',fontSize:9,formatter:'¥{c}',color:textColor} },
+    ]
+  });
+}
+
+// 图表2: 近7日趋势
+function renderTrendChart(data) {
+  const trends = data.trends || {};
+  const chart = getChartDom('chartTrend');
+  const hotelNames = Object.keys(trends);
+
+  if (!hotelNames.length) {
+    // 无历史数据时显示提示
+    chart.setOption({
+      title: { text:'暂无历史趋势数据', left:'center', top:'center',
+        textStyle:{color:textColor,fontSize:14} },
+    });
+    return;
+  }
+
+  const series = hotelNames.map(name => ({
+    name: name.replace('九寨沟','').replace('酒店',''),
+    type: 'line',
+    data: (trends[name] || []).map(d => d.min_price),
+    smooth: true,
+    symbol: 'circle',
+    symbolSize: 6,
+    lineStyle: { width:2 },
+    itemStyle: { color: HOTEL_COLORS[name] || '#c8963e' },
+  }));
+
+  // 取第一个酒店的日期作为x轴
+  const dates = (trends[hotelNames[0]] || []).map(d => d.fetch_date);
+
+  chart.setOption({
+    tooltip: { trigger:'axis',
+      formatter: p => {
+        let s = '<b>' + p[0].axisValue + '</b><br/>';
+        p.forEach(item => { s += item.marker + ' ' + item.seriesName + ': ¥' + item.value + '<br/>'; });
+        return s;
+      }
+    },
+    legend: { data: series.map(s=>s.name), textStyle:{color:textColor,fontSize:9}, top:5, type:'scroll' },
+    grid: { left:'8%', right:'5%', top:'18%', bottom:'8%' },
+    xAxis: { type:'category', data:dates, ...axisCommon },
+    yAxis: { type:'value', name:'¥', ...axisCommon },
+    series: series,
+  });
+}
+
+// 图表3: 房型价格分布（散点/气泡）
+function renderRoomChart(data) {
+  const hotels = data.hotels || [];
+  const chart = getChartDom('chartRooms');
+
+  if (!hotels.length) return;
+
+  // 构建房型数据：从 raw API 或 hotels 数组
+  const allRooms = [];
+  if (data.raw && data.raw.data) {
+    const roomMap = {};
+    data.raw.data.forEach(r => {
+      const key = r['酒店名称'] + '|' + r['房型'];
+      if (!roomMap[key] || r['单价_晚'] < roomMap[key].price) {
+        roomMap[key] = { hotel: r['酒店名称'], room: r['房型'], price: r['单价_晚'] };
+      }
+    });
+    Object.values(roomMap).forEach(r => allRooms.push(r));
+  }
+
+  // 按酒店分组
+  const hotelGroups = {};
+  allRooms.forEach(r => {
+    if (!hotelGroups[r.hotel]) hotelGroups[r.hotel] = [];
+    hotelGroups[r.hotel].push(r);
+  });
+
+  const names = Object.keys(hotelGroups);
+  if (!names.length) return;  // 无房型数据，跳过渲染
+  const maxRoomCount = Math.max(...names.map(n => (hotelGroups[n] || []).length), 1);
+  const series = names.map((name, i) => ({
+    name: name.replace('九寨沟','').replace('酒店',''),
+    type: 'bar',
+    data: hotelGroups[name].map(r => r.price),
+    itemStyle: { color: HOTEL_COLORS[name] || '#c8963e', borderRadius:[3,3,0,0] },
+    label: { show: true, position:'top', fontSize:8, color:textColor,
+      formatter: p => hotelGroups[name][p.dataIndex].room.length > 8
+        ? hotelGroups[name][p.dataIndex].room.slice(0,8)+'…' : hotelGroups[name][p.dataIndex].room },
+    emphasis: { itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,0.5)'} },
+  }));
+
+  chart.setOption({
+    tooltip: { trigger:'axis',
+      formatter: p => {
+        const hotel = names[p[0].dataIndex];
+        const r = hotelGroups[hotel][p[0].dataIndex];
+        return '<b>' + hotel + '</b><br/>' + r.room + '<br/>¥' + r.price;
+      }
+    },
+    legend: { data: series.map(s=>s.name), textStyle:{color:textColor,fontSize:9}, top:5, type:'scroll' },
+    grid: { left:'5%', right:'5%', top:'18%', bottom:'15%' },
+    xAxis: { type:'category', data: [...Array(maxRoomCount)].map((_, i) => '#' + (i + 1)),
+      name:'房型序号', ...axisCommon },
+    yAxis: { type:'value', name:'¥', ...axisCommon },
+    series: series,
+  });
+}
+
+// 图表4: 竞对价格矩阵（热力图）
+function renderMatrixChart(data) {
+  const hotels = data.hotels || [];
+  const chart = getChartDom('chartMatrix');
+
+  if (!hotels.length) return;
+
+  // 构建矩阵数据: 行=酒店, 列=价格段(最低/均价/最高/房型数)
+  const xLabels = ['最低价', '均价', '最高价', '房型数'];
+  const yLabels = hotels.map(h => h.hotel_name.replace('九寨沟','').replace('酒店',''));
+  const matrixData = [];
+  const priceMax = Math.max(...hotels.map(h => h.max_price), 1);
+
+  hotels.forEach((h, yi) => {
+    matrixData.push([0, yi, h.min_price]);
+    matrixData.push([1, yi, h.avg_price]);
+    matrixData.push([2, yi, h.max_price]);
+    matrixData.push([3, yi, h.room_types]);
+  });
+
+  chart.setOption({
+    tooltip: {
+      formatter: p => {
+        const h = hotels[p.data[1]];
+        const col = ['最低价','均价','最高价','房型数'][p.data[0]];
+        return '<b>' + h.hotel_name + '</b><br/>' + col + ': ' +
+          (p.data[0] === 3 ? p.data[2] + '种' : '¥' + p.data[2]);
+      }
+    },
+    grid: { left:'18%', right:'8%', top:'6%', bottom:'8%' },
+    xAxis: { type:'category', data:xLabels, position:'top', ...axisCommon },
+    yAxis: { type:'category', data:yLabels, ...axisCommon },
+    visualMap: {
+      min: 0, max: priceMax,
+      calculable: true,
+      orient:'vertical', right:5, top:'center',
+      textStyle:{color:textColor},
+      inRange: { color: ['#0d1f3c', '#1a3a6b', '#c8963e', '#f59e0b'] }
+    },
+    series: [{
+      type: 'heatmap',
+      data: matrixData,
+      label: { show:true, fontSize:11, fontWeight:'bold',
+        formatter: p => p.data[0] === 3 ? p.data[2]+'种' : '¥'+p.data[2] },
+      emphasis: { itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,0.5)'} },
+    }]
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// 价格明细表
+// ═══════════════════════════════════════════════════════
+function renderTable(data) {
+  let rows = [];
+  // 优先用 raw API 数据（含房型明细），否则用 hotels 摘要
+  if (data.raw && data.raw.data) {
+    rows = data.raw.data.map(r => ({
+      hotel: r['酒店名称'],
+      star: r['星级'] || inferStar(r['酒店名称']),
+      room: r['房型'] || '标准房',
+      platform: r['OTA平台'] || '携程',
+      price: r['单价_晚'],
+      source: r['数据来源'] || '',
+      breakfast: r['含早'] || '--',
+      cancel: r['可取消'] || '--',
+    }));
+  } else {
+    const hotels = data.hotels || [];
+    hotels.forEach(h => {
+      rows.push({
+        hotel: h.hotel_name, star: inferStar(h.hotel_name),
+        room: '最低房型', platform: '携程', price: h.min_price,
+        source: '携程真实', breakfast: '--', cancel: '--',
+      });
+    });
+  }
+
+  if (!rows.length) {
+    document.getElementById('tableContainer').innerHTML =
+      '<div style="padding:40px;text-align:center;color:var(--muted);">暂无数据，点击"实时采集"获取价格</div>';
+    return;
+  }
 
   // 排序
   if (sortCol >= 0) {
-    const keys = ['hotelName','hotelStar','roomType','platform','pricePerNight','hasBreakfast','canCancel'];
+    const keys = ['hotel','star','room','platform','price','source','breakfast','cancel'];
     const key = keys[sortCol];
-    data.sort((a,b) => {
+    rows.sort((a,b) => {
       if (typeof a[key] === 'number') return sortAsc ? a[key]-b[key] : b[key]-a[key];
-      if (typeof a[key] === 'boolean') return sortAsc ? (a[key]?1:0)-(b[key]?1:0) : (b[key]?1:0)-(a[key]?1:0);
-      return sortAsc ? a[key].localeCompare(b[key]) : b[key].localeCompare(a[key]);
+      return sortAsc ? String(a[key]).localeCompare(String(b[key])) : String(b[key]).localeCompare(String(a[key]));
     });
   }
 
-  // 找每个酒店-房型组合的最低OTA价
-  const keyed = {};
-  data.forEach(r => {
-    const k = r.hotelName+'|'+r.roomType;
-    if (!keyed[k] || r.pricePerNight < keyed[k].pricePerNight) keyed[k] = r;
-  });
-  const lowestPrices = new Set(Object.values(keyed).map(r => r.hotelName+'|'+r.roomType+'|'+r.platform+'|'+r.pricePerNight));
-
-  const maxPrice = Math.max(...data.map(r=>r.pricePerNight), 1);
+  // 找出每个酒店最低价
+  const hotelMins = {};
+  rows.forEach(r => { if (!hotelMins[r.hotel] || r.price < hotelMins[r.hotel]) hotelMins[r.hotel] = r.price; });
 
   const headerClick = (idx, label) =>
-    `<th style="cursor:pointer" onclick="sortTable(${idx})">${label} ${sortCol===idx ? (sortAsc?'▲':'▼') : ''}</th>`;
+    `<th onclick="sortTable(${idx})">${label} ${sortCol===idx ? (sortAsc?'▲':'▼') : ''}</th>`;
 
   let html = `<table>
   <thead><tr>
-    ${headerClick(0,'酒店名称')}
-    ${headerClick(1,'星级')}
-    ${headerClick(2,'房型')}
-    ${headerClick(3,'OTA平台')}
-    ${headerClick(4,'单价/晚')}
-    <th>含早</th>
-    <th>取消政策</th>
-    <th>比价</th>
+    ${headerClick(0,'酒店名称')} ${headerClick(1,'星级')} ${headerClick(2,'房型')}
+    ${headerClick(3,'平台')} ${headerClick(4,'单价/晚')} ${headerClick(5,'来源')}
+    <th>含早</th><th>取消</th><th>标记</th>
   </tr></thead><tbody>`;
 
-  data.forEach(r => {
-    const isLowest = lowestPrices.has(r.hotelName+'|'+r.roomType+'|'+r.platform+'|'+r.pricePerNight);
-    const starStr = '⭐'.repeat(r.hotelStar);
-    const priceRatio = r.pricePerNight / maxPrice;
-    const priceClass = isLowest ? 'price-best' : (priceRatio > 0.8 ? 'price-high' : '');
-    const platformClass = {
-      '携程':'ota-ctrip','美团':'ota-meituan','飞猪':'ota-fliggy',
-      '去哪儿':'ota-qunar','同程':'ota-tongcheng','艺龙':'ota-elong'
-    }[r.platform] || '';
-
+  rows.forEach(r => {
+    const isLowest = r.price === hotelMins[r.hotel];
+    const starStr = '⭐'.repeat(r.star);
     html += `<tr>
-      <td><b>${r.hotelName}</b><br><span style="color:var(--muted);font-size:10px;">${r.hotelAddr}</span></td>
+      <td><b>${r.hotel}</b></td>
       <td>${starStr}</td>
-      <td>${r.roomType}</td>
-      <td><span class="ota-tag ${platformClass}">${r.platform}</span></td>
-      <td class="price-cell ${priceClass}">¥${r.pricePerNight.toLocaleString()}</td>
-      <td>${r.hasBreakfast ? '🍳 含早' : '—'}</td>
-      <td>${r.canCancel ? '✅ 可取消' : '⚠️ 不可取消'}</td>
-      <td>${isLowest ? '<span class="badge badge-lowest">🏆 最低价</span>' : ''}</td>
+      <td>${r.room.length > 20 ? r.room.slice(0,20)+'…' : r.room}</td>
+      <td>${r.platform}</td>
+      <td class="${isLowest ? 'price-lowest' : ''}">¥${r.price}</td>
+      <td>${r.source}</td>
+      <td>${r.breakfast === '是' ? '🍳' : '--'}</td>
+      <td>${r.cancel === '是' ? '✅' : '--'}</td>
+      <td>${isLowest ? '<span class="badge badge-best">最低</span>' : ''}</td>
     </tr>`;
   });
 
@@ -598,151 +631,52 @@ function renderTable() {
   document.getElementById('tableContainer').innerHTML = html;
 }
 
+function inferStar(name) {
+  if (name.includes('德尔塔')) return 5;
+  if (name.includes('诺富特') || name.includes('万怡')) return 4;
+  if (name.includes('全季')) return 3;
+  return 4;
+}
+
 function sortTable(col) {
-  if (sortCol === col) sortAsc = !sortAsc;
-  else { sortCol = col; sortAsc = true; }
-  renderTable();
-}
-
-// ═══════════════════════════════════════════════════════
-// 简易图表（纯CSS + DOM，无外部依赖）
-// ═══════════════════════════════════════════════════════
-function renderCharts() {
-  // 1. 各酒店OTA价差对比
-  const hotelPrices = {};
-  currentData.forEach(r => {
-    if (!hotelPrices[r.hotelName]) hotelPrices[r.hotelName] = [];
-    hotelPrices[r.hotelName].push(r.pricePerNight);
-  });
-
-  const spreadHtml = Object.entries(hotelPrices).slice(0, 10).map(([name, prices]) => {
-    const min = Math.min(...prices);
-    const max = Math.max(...prices);
-    const avg = Math.round(prices.reduce((a,b)=>a+b,0)/prices.length);
-    const spread = max - min;
-    const maxW = Math.max(...Object.values(hotelPrices).map(p => Math.max(...p)-Math.min(...p)));
-    const w = maxW > 0 ? (spread/maxW*100) : 50;
-    return `<div style="margin:8px 0;">
-      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px;">
-        <span>${name.length>10?name.slice(0,10)+'…':name}</span>
-        <span style="color:var(--gold);">¥${min} ~ ¥${max} <span style="color:var(--red);">(差¥${spread})</span></span>
-      </div>
-      <div style="background:#0d1f3c;border-radius:6px;height:10px;position:relative;">
-        <div style="position:absolute;left:${(min/2000*100)}%;width:${w}%;background:linear-gradient(90deg,#28a745,#f0c040,#dc3545);height:100%;border-radius:6px;opacity:0.8;"></div>
-        <div style="position:absolute;left:${(avg/2000*100)}%;top:-2px;width:4px;height:14px;background:#fff;border-radius:2px;" title="均价¥${avg}"></div>
-      </div>
-    </div>`;
-  }).join('');
-  document.getElementById('priceSpreadChart').innerHTML = spreadHtml;
-
-  // 2. 各OTA平台均价对比
-  const platformAvgs = {};
-  OTA_PLATFORMS.forEach(p => {
-    const pPrices = currentData.filter(r=>r.platform===p).map(r=>r.pricePerNight);
-    platformAvgs[p] = pPrices.length > 0 ? Math.round(pPrices.reduce((a,b)=>a+b,0)/pPrices.length) : 0;
-  });
-  const maxPlatformAvg = Math.max(...Object.values(platformAvgs), 1);
-  const platformHtml = OTA_PLATFORMS.map(p => {
-    const h = platformAvgs[p]/maxPlatformAvg*160;
-    return `<div class="bar-col">
-      <div style="font-size:11px;font-weight:700;color:var(--gold);">¥${platformAvgs[p]}</div>
-      <div class="bar-fill" style="height:${h}px;background:${p==='携程'?'#0066cc':p==='美团'?'#ffc700':p==='飞猪'?'#ff5000':p==='去哪儿'?'#1976d2':p==='同程'?'#07c160':'#e60044'};"></div>
-      <div class="bar-label">${p}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('platformAvgChart').innerHTML = `<div class="bar-chart">${platformHtml}</div>`;
-
-  // 3. 近7天价格趋势（模拟）
-  const trendDays = [];
-  const checkin = new Date(document.getElementById('checkin').value);
-  for (let i=6; i>=0; i--) {
-    const d = new Date(checkin);
-    d.setDate(d.getDate()-i);
-    trendDays.push(d);
-  }
-  const baseP = 1200; // 悦榕庄基础价
-  const trendData = trendDays.map((d,i) => {
-    const m = d.getMonth()+1;
-    const dow = d.getDay();
-    let mult = 1.0;
-    if ([4,5,9,10].includes(m)) mult = 1.5;
-    else if ([7,8].includes(m)) mult = 1.35;
-    else if ([1,2,12].includes(m)) mult = 0.75;
-    if (dow===5||dow===6) mult *= 1.15;
-    const noise = 1 + (Math.random()-0.5)*0.06;
-    return Math.round(baseP*mult*noise/10)*10;
-  });
-  const maxTrend = Math.max(...trendData);
-  const trendMin = Math.min(...trendData);
-  const trendHtml = trendDays.map((d,i) => {
-    const h = ((trendData[i]-trendMin)/(maxTrend-trendMin || 1))*140 + 16;
-    return `<div class="bar-col">
-      <div style="font-size:10px;color:var(--gold);">¥${trendData[i]}</div>
-      <div class="bar-fill" style="height:${h}px;background:linear-gradient(180deg,#c8963e,#3b82f6);"></div>
-      <div class="bar-label">${(d.getMonth()+1)+'/'+d.getDate()}</div>
-    </div>`;
-  }).join('');
-  document.getElementById('trendChart').innerHTML = `<div class="bar-chart">${trendHtml}</div>`;
-}
-
-// ═══════════════════════════════════════════════════════
-// 全网最低价 Top 5
-// ═══════════════════════════════════════════════════════
-function renderBestDeals() {
-  const sorted = [...currentData].sort((a,b) => a.pricePerNight - b.pricePerNight);
-  const seen = new Set();
-  const unique = [];
-  sorted.forEach(r => {
-    const k = r.hotelName+'|'+r.roomType;
-    if (!seen.has(k)) { seen.add(k); unique.push(r); }
-  });
-  const top5 = unique.slice(0, 5);
-
-  const html = top5.map((r,i) => `
-    <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;
-      background:var(--card);border:1px solid var(--border);border-radius:8px;margin:6px 0;
-      ${i===0 ? 'border-left:3px solid var(--green);' : ''}">
-      <div style="font-size:24px;font-weight:800;color:${i===0?'var(--green)':'var(--gold)'};min-width:36px;">
-        #${i+1}
-      </div>
-      <div style="flex:1;">
-        <div style="font-weight:700;">${r.hotelName}</div>
-        <div style="font-size:11px;color:var(--muted);">${r.roomType} · ${r.hotelStar}星</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:20px;font-weight:800;color:var(--green);">¥${r.pricePerNight}</div>
-        <div style="font-size:10px;color:var(--muted);">
-          <span class="ota-tag ${{
-            '携程':'ota-ctrip','美团':'ota-meituan','飞猪':'ota-fliggy',
-            '去哪儿':'ota-qunar','同程':'ota-tongcheng','艺龙':'ota-elong'
-          }[r.platform]}">${r.platform}</span>
-          ${r.hasBreakfast ? '🍳含早' : ''} ${r.canCancel ? '✅可取消' : ''}
-        </div>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('bestDeals').innerHTML = html;
+  if (sortCol === col) sortAsc = !sortAsc; else { sortCol = col; sortAsc = true; }
+  if (dashboardData) renderTable(dashboardData);
 }
 
 // ═══════════════════════════════════════════════════════
 // CSV导出
 // ═══════════════════════════════════════════════════════
 function exportCSV() {
-  const headers = ['酒店名称','星级','房型','OTA平台','单价/晚','总价','含早','可取消','入住','离店','晚数'];
-  const rows = currentData.map(r => [
-    r.hotelName, r.hotelStar, r.roomType, r.platform,
-    r.pricePerNight, r.totalPrice, r.hasBreakfast?'是':'否', r.canCancel?'是':'否',
-    r.checkin, r.checkout, r.nights
-  ]);
-  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-  const blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
+  if (!dashboardData) return showToast('⚠️ 无数据可导出', 'error');
+
+  let rows = [];
+  if (dashboardData.raw && dashboardData.raw.data) {
+    rows = dashboardData.raw.data;
+  } else if (dashboardData.hotels) {
+    rows = dashboardData.hotels.map(h => ({
+      '酒店名称': h.hotel_name, 'OTA平台': '携程', '房型': '标准房',
+      '单价_晚': h.min_price, '数据来源': '携程真实',
+    }));
+  }
+
+  if (!rows.length) return showToast('⚠️ 无数据可导出', 'error');
+
+  const headers = Object.keys(rows[0]);
+  const csvLines = [headers.join(',')];
+  rows.forEach(r => {
+    csvLines.push(headers.map(k => {
+      const v = r[k] !== undefined ? r[k] : '';
+      return String(v).includes(',') ? '"' + v + '"' : v;
+    }).join(','));
+  });
+
+  const blob = new Blob(['﻿' + csvLines.join('\n')], {type:'text/csv;charset=utf-8'});
   const a = document.createElement('a');
-  a.href = url;
-  a.download = `九寨沟OTA比价_${new Date().toISOString().slice(0,10)}.csv`;
+  a.href = URL.createObjectURL(blob);
+  a.download = '九寨沟OTA价格_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
-  URL.revokeObjectURL(url);
-  showToast('📥 CSV已导出','info');
+  URL.revokeObjectURL(a.href);
+  showToast('📥 CSV已导出', 'info');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -750,19 +684,16 @@ function exportCSV() {
 // ═══════════════════════════════════════════════════════
 function toggleAutoRefresh() {
   const btn = document.getElementById('autoBtn');
-  if (autoRefreshTimer) {
-    clearInterval(autoRefreshTimer);
-    autoRefreshTimer = null;
-    btn.innerHTML = '⏱ 自动监控: 关';
-    btn.classList.remove('btn-green');
-    btn.classList.add('btn-outline');
-    showToast('自动监控已关闭','info');
+  if (autoTimer) {
+    clearInterval(autoTimer); autoTimer = null;
+    btn.textContent = '⏱ 自动刷新: 关';
+    btn.classList.remove('btn-green'); btn.classList.add('btn-outline');
+    showToast('自动刷新已关闭', 'info');
   } else {
-    autoRefreshTimer = setInterval(refreshData, 30000); // 每30秒刷新
-    btn.innerHTML = '⏱ 自动监控: 开 (30s)';
-    btn.classList.remove('btn-outline');
-    btn.classList.add('btn-green');
-    showToast('🔁 自动监控已开启，每30秒刷新','success');
+    autoTimer = setInterval(refreshAll, 60000);
+    btn.textContent = '⏱ 自动刷新: 开 (60s)';
+    btn.classList.remove('btn-outline'); btn.classList.add('btn-green');
+    showToast('🔁 每60秒自动刷新', 'success');
   }
 }
 
@@ -770,27 +701,13 @@ function toggleAutoRefresh() {
 // Toast
 // ═══════════════════════════════════════════════════════
 function showToast(msg, type) {
-  const container = document.getElementById('toastContainer');
-  const toast = document.createElement('div');
-  toast.className = `toast toast-${type}`;
-  toast.textContent = msg;
-  container.appendChild(toast);
-  setTimeout(() => { toast.style.opacity='0'; setTimeout(()=>toast.remove(),400); }, 2500);
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast toast-' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 2500);
 }
-
-// ═══════════════════════════════════════════════════════
-// 过滤器联动
-// ═══════════════════════════════════════════════════════
-document.getElementById('starFilter').addEventListener('change', renderTable);
-document.getElementById('roomFilter').addEventListener('change', renderTable);
-document.getElementById('checkin').addEventListener('change', () => {
-  const ci = new Date(document.getElementById('checkin').value);
-  const co = new Date(ci);
-  co.setDate(co.getDate()+1);
-  document.getElementById('checkout').value = fmtDate(co);
-  refreshData();
-});
-document.getElementById('checkout').addEventListener('change', refreshData);
 </script>
 </body>
 </html>

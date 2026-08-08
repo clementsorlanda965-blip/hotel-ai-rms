@@ -1,0 +1,211 @@
+# =============================================================================
+# 九寨沟 OTA 价格监控 — 酒店配置
+# =============================================================================
+# 用途：集中管理目标酒店列表、携程ID映射、平台偏差参数
+# 修改此文件后无需重启服务，下次采集自动生效
+# =============================================================================
+
+# ── 采集全局设置 ──
+scraper:
+  # 默认入住/离店日期（相对今天偏移天数）
+  default_checkin_offset: 7    # 7天后入住
+  default_checkout_offset: 8   # 8天后离店
+
+  # Chrome CDP 设置
+  chrome:
+    port: 9222
+    exe: "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+    user_data_dir: "E:\\工作AI\\代码脚本\\hotel_ai_rms\\chrome_cdp_profile"
+    # 健康检查端点
+    health_url: "http://127.0.0.1:9222/json/version"
+    # 启动超时（秒）
+    startup_timeout: 15
+    # 无响应后强制重启前等待（秒）
+    hang_timeout: 120
+    # 心跳间隔（秒）
+    heartbeat_interval: 30
+
+  # 反爬策略
+  anti_bot:
+    # 每采集N家后重启Chrome
+    batch_restart_every: 3
+    # 页面间延迟（秒）
+    page_delay_min: 15
+    page_delay_max: 25
+    # 批量重启冷却（秒）
+    restart_cooldown: 5
+    # 单酒店最大重试次数
+    max_retries: 2
+
+  # 采集超时（秒）
+  timeouts:
+    page_load: 30
+    api_wait: 15
+    total_per_hotel: 90
+
+  # 缓存设置
+  cache:
+    ttl_seconds: 300      # API缓存5分钟
+    force_refresh_hour: 9 # 每日强制刷新时间
+
+# ── 目标酒店列表 ──
+# name: 酒店显示名称
+# ctrip_id: 携程酒店ID（列表页自动匹配不到的可在下面手动指定，留空则自动匹配）
+# star: 星级
+# base_price: 参考基础价
+# keywords: 用于携程/Google名称匹配的关键词列表
+hotels:
+  - name: "九寨沟悦榕庄"
+    ctrip_id: ""
+    star: 5
+    base_price: 1600
+    address: "漳扎镇"
+    keywords: ["悦榕庄", "Banyan Tree"]
+
+  - name: "九寨沟希尔顿度假酒店"
+    ctrip_id: ""
+    star: 5
+    base_price: 1100
+    address: "漳扎镇"
+    keywords: ["希尔顿", "Hilton"]
+
+  - name: "九寨沟天堂洲际大饭店"
+    ctrip_id: ""
+    star: 5
+    base_price: 1350
+    address: "漳扎镇甘海子"
+    keywords: ["洲际", "天堂洲际", "InterContinental", "Paradise"]
+
+  - name: "九寨沟喜来登国际大酒店"
+    ctrip_id: ""
+    star: 5
+    base_price: 950
+    address: "漳扎镇"
+    keywords: ["喜来登", "Sheraton"]
+
+  - name: "九寨沟天源豪生度假酒店"
+    ctrip_id: ""
+    star: 5
+    base_price: 850
+    address: "漳扎镇"
+    keywords: ["豪生", "Howard Johnson"]
+
+  - name: "九寨沟金龙国际度假酒店"
+    ctrip_id: ""
+    star: 5
+    base_price: 750
+    address: "漳扎镇"
+    keywords: ["金龙", "Golden Dragon"]
+
+  - name: "九寨沟鲁能希尔顿花园酒店"
+    ctrip_id: ""
+    star: 5
+    base_price: 900
+    address: "漳扎镇"
+    keywords: ["希尔顿花园", "鲁能希尔顿", "Hilton Garden"]
+
+  - name: "九寨沟丽思卡尔顿隐世精品度假酒店"
+    ctrip_id: ""
+    star: 5
+    base_price: 2500
+    address: "漳扎镇"
+    keywords: ["丽思卡尔顿", "Ritz-Carlton"]
+
+  - name: "九寨沟千鹤丽呈酒店"
+    ctrip_id: ""
+    star: 4
+    base_price: 550
+    address: "漳扎镇"
+    keywords: ["千鹤丽呈", "千鹤"]
+
+  - name: "九寨沟亚朵酒店"
+    ctrip_id: ""
+    star: 4
+    base_price: 500
+    address: "漳扎镇"
+    keywords: ["亚朵", "Atour"]
+
+  - name: "星程酒店(九寨沟风景区店)"
+    ctrip_id: ""
+    star: 4
+    base_price: 430
+    address: "漳扎镇"
+    keywords: ["星程", "Starway"]
+
+  - name: "全季酒店(九寨沟景区店)"
+    ctrip_id: ""
+    star: 4
+    base_price: 380
+    address: "漳扎镇"
+    keywords: ["全季", "Ji Hotel"]
+
+  - name: "九寨度假村酒店"
+    ctrip_id: ""
+    star: 4
+    base_price: 550
+    address: "漳扎镇彭丰村"
+    keywords: ["九寨度假村", "Jiuzhai Resort"]
+
+  - name: "汉庭酒店(九寨沟景区店)"
+    ctrip_id: ""
+    star: 3
+    base_price: 240
+    address: "漳扎镇"
+    keywords: ["汉庭", "Hanting"]
+
+  - name: "如家精选酒店(九寨沟店)"
+    ctrip_id: ""
+    star: 3
+    base_price: 220
+    address: "漳扎镇"
+    keywords: ["如家", "Home Inn"]
+
+# ── OTA 平台参数 ──
+platforms:
+  - name: "携程"
+    commission: 0.15
+    price_bias: 1.00
+    color: "#0066cc"
+  - name: "美团"
+    commission: 0.12
+    price_bias: 0.97
+    color: "#ffc700"
+  - name: "飞猪"
+    commission: 0.10
+    price_bias: 0.95
+    color: "#ff5000"
+  - name: "去哪儿"
+    commission: 0.13
+    price_bias: 0.93
+    color: "#1976d2"
+  - name: "同程"
+    commission: 0.11
+    price_bias: 0.96
+    color: "#07c160"
+  - name: "艺龙"
+    commission: 0.14
+    price_bias: 0.98
+    color: "#e60044"
+
+# ── 告警阈值 ──
+alerts:
+  # 竞对降价告警：单酒店降价超过此比例触发
+  competitor_price_drop_pct: 15
+  # 采集连续失败N次触发告警
+  scraper_consecutive_failures: 3
+  # Chrome CDP 无响应超时（秒）
+  chrome_hang_timeout: 120
+  # 每日最晚采集完成时间（超过则告警）
+  daily_scrape_deadline_hour: 10
+
+# ── 通知渠道 ──
+notifications:
+  feishu:
+    enabled: true
+    # webhook URL 通过环境变量 FEISHU_RMS_ALERT_WEBHOOK 设置
+    # 或通过 feishu-mcp / lark-im 发送
+    webhook_env: "FEISHU_RMS_ALERT_WEBHOOK"
+  # 本地日志文件
+  log_file: "E:\\工作AI\\临时文件\\ota_scraper_service.log"
+  log_max_mb: 50
+  log_backup_count: 5

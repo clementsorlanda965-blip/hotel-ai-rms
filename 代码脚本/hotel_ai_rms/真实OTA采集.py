@@ -35,7 +35,7 @@ from typing import Optional
 # ═══════════════════════════════════════════════════════
 # 配置
 # ═══════════════════════════════════════════════════════
-OUTPUT_DIR = Path(__file__).parent if "__file__" in dir() else Path.cwd()
+OUTPUT_DIR = Path(__file__).parent
 OUTPUT_CSV = OUTPUT_DIR / "ota_real_prices.csv"
 
 JIUZHAIGOU_HOTELS = [

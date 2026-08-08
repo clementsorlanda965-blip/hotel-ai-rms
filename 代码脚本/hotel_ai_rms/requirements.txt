@@ -1,6 +1,8 @@
-streamlit>=1.28.0
-pandas>=2.0.0
-numpy>=1.24.0
-plotly>=5.17.0
-openpyxl>=3.1.0
-playwright>=1.40.0
+# Hotel AI-RMS 酒店AI收益管理系统 — 依赖声明
+# 安装: pip install -r requirements.txt
+
+streamlit>=1.28
+pandas>=2.0
+numpy>=1.24
+plotly>=5.14
+openpyxl>=3.1

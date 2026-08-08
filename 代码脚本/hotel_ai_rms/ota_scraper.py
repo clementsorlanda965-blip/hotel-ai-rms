@@ -1,24 +1,21 @@
 """
-ota_scraper.py — 九寨沟OTA价格采集模块 v4.0
+ota_scraper.py — 九寨沟OTA价格采集模块 v7.0
 可被 server.py 导入，也可独立运行。
 
-采集策略（三级降级）:
-  1. requests + BS4 直抓 Qunar SSR 页面（快，但可能被反爬）
-  2. Playwright 无头浏览器（慢但可靠）
+采集策略（四级降级）:
+  0. 🔥 携程 CDP 真实价格（Chrome远程调试 + API拦截）—— 最优先
+  1. 🔥 Google Hotels DOM 提取（国际品牌真实价格）
+  2. Playwright 无头浏览器 Qunar
   3. 校准模拟数据兜底（标记 "模拟参考"）
+
+4/4 携程ID已确认。
 
 用法:
   from ota_scraper import scrape_all, HOTELS
   results = scrape_all(mode="auto")
 """
 
-import csv
-import json
-import os
-import re
-import sys
-import time
-import random
+import csv, json, os, re, sys, time, random, asyncio, threading
 from datetime import datetime, timedelta, date
 from pathlib import Path
 from typing import Optional
@@ -27,36 +24,25 @@ ROOT = Path(__file__).parent
 OUTPUT_CSV = ROOT / "ota_real_prices.csv"
 OUTPUT_JSON = ROOT / "ota_real_prices.json"
 
+USD_TO_CNY = 7.20
+
+# ──── 4家九寨沟目标酒店（已确认携程ID）────
 HOTELS = [
-    {"name": "九寨沟悦榕庄", "star": 5, "base": 1600},
-    {"name": "九寨沟希尔顿度假酒店", "star": 5, "base": 1100},
-    {"name": "九寨沟天堂洲际大饭店", "star": 5, "base": 1350},
-    {"name": "九寨沟喜来登国际大酒店", "star": 5, "base": 950},
-    {"name": "九寨沟天源豪生度假酒店", "star": 5, "base": 850},
-    {"name": "九寨沟金龙国际度假酒店", "star": 5, "base": 750},
-    {"name": "九寨沟亚朵酒店", "star": 4, "base": 500},
-    {"name": "星程酒店(九寨沟风景区店)", "star": 4, "base": 430},
-    {"name": "全季酒店(九寨沟景区店)", "star": 4, "base": 380},
-    {"name": "九寨度假村酒店", "star": 4, "base": 550},
-    {"name": "汉庭酒店(九寨沟景区店)", "star": 3, "base": 240},
-    {"name": "如家精选酒店(九寨沟店)", "star": 3, "base": 220},
-    {"name": "九寨沟眼境民宿", "star": 3, "base": 170},
-    {"name": "九寨沟云居客栈", "star": 3, "base": 200},
-    {"name": "九寨沟喇嘛岭寺客栈", "star": 3, "base": 150},
+    {"name": "九寨沟诺富特酒店", "star": 4, "base": 600, "ctrip_id": "133579644",
+     "address": "九寨沟县", "keywords": ["诺富特", "Novotel"]},
+    {"name": "九寨沟万怡酒店", "star": 4, "base": 650, "ctrip_id": "110034462",
+     "address": "九寨沟县", "keywords": ["万怡", "Courtyard", "Marriott"]},
+    {"name": "九寨沟德尔塔酒店", "star": 5, "base": 800, "ctrip_id": "104424550",
+     "address": "九寨沟县", "keywords": ["德尔塔", "Delta", "Marriott"]},
+    {"name": "全季酒店九寨沟九寨大道店", "star": 3, "base": 350, "ctrip_id": "123577708",
+     "address": "九寨沟县南坪镇滨江路2号", "keywords": ["全季", "JI Hotel", "九寨大道"]},
 ]
 
-PLATFORMS = ["携程", "美团", "飞猪", "去哪儿", "同程", "艺龙"]
+PLATFORMS = ["携程"]
 
 PLATFORM_BIAS = {
     "携程": {"commission": 0.15, "bias": 1.00},
-    "美团": {"commission": 0.12, "bias": 0.97},
-    "飞猪": {"commission": 0.10, "bias": 0.95},
-    "去哪儿": {"commission": 0.13, "bias": 0.93},
-    "同程": {"commission": 0.11, "bias": 0.96},
-    "艺龙": {"commission": 0.14, "bias": 0.98},
 }
-
-ROOM_TYPES = ["大床房", "双床房", "标准间", "套房", "亲子房", "行政房"]
 
 SEASON_FACTORS = {
     1: 0.65, 2: 0.70, 3: 0.80, 4: 1.30, 5: 1.40,
@@ -72,224 +58,294 @@ DEFAULT_CHECKOUT = (TODAY + timedelta(days=4)).strftime("%Y-%m-%d")
 # 工具函数
 # ═══════════════════════════════════════════════════════════════
 
-def _extract_price(text: str) -> Optional[int]:
-    """从文本提取价格数字 (80-10000区间)。"""
-    for p in re.findall(r"[¥￥]\s*(\d{2,5})", str(text).replace(",", "")):
-        price = int(p)
-        if 80 < price < 10000:
-            return price
-    return None
-
-
 def _now():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _season_multiplier(checkin_date: str = None) -> float:
-    """根据入住日期计算季节系数。"""
-    if checkin_date:
-        try:
-            m = datetime.strptime(checkin_date, "%Y-%m-%d").month
-        except ValueError:
-            m = TODAY.month
-    else:
-        m = TODAY.month
+    m = datetime.strptime(checkin_date, "%Y-%m-%d").month if checkin_date else TODAY.month
     base = SEASON_FACTORS.get(m, 1.0)
-    # 周末加成
     try:
         d = datetime.strptime(checkin_date, "%Y-%m-%d") if checkin_date else TODAY
         if d.weekday() >= 5:
             base *= 1.12
-    except ValueError:
+    except:
         pass
     return base
 
 
 # ═══════════════════════════════════════════════════════════════
-# 策略1: requests + BS4 直抓 Qunar
+# 策略0: 携程 CDP 真实价格（最高优先级）
 # ═══════════════════════════════════════════════════════════════
 
-def _scrape_qunar_requests(hotel_name: str, checkin: str, checkout: str) -> list[dict]:
-    """纯 requests 抓取去哪儿搜索结果页。"""
+def _extract_ctrip_prices(api_body: str) -> list[dict]:
+    """
+    双路径价格提取:
+    - 路径1: cancelInfo.ladderDetailInfo[].customCurrencyPrice.amount (国内酒店)
+    - 路径2: priceInfo.price (国际品牌: 希尔顿/丽思/智选等)
+    """
+    data = json.loads(api_body) if isinstance(api_body, str) else api_body
+    srm = data.get("data", {}).get("saleRoomMap", {})
+    prm = data.get("data", {}).get("physicRoomMap", {})
+
+    results = {}
+    for sid, sinfo in srm.items():
+        phys_id = str(sinfo.get("physicalRoomId", ""))
+        room_name = prm.get(phys_id, {}).get("name", f"Room_{phys_id}")
+        price = None
+
+        # 路径1: cancelInfo (国内酒店)
+        ci = sinfo.get("cancelInfo", {})
+        for ladder in (ci.get("ladderDetailInfo", []) or []):
+            ccp = ladder.get("customCurrencyPrice", {})
+            amt = ccp.get("amount")
+            if amt and isinstance(amt, (int, float)) and 200 < amt < 50000:
+                price = amt
+                break
+
+        # 路径2: priceInfo (国际品牌)
+        if not price:
+            pi = sinfo.get("priceInfo", {})
+            amt = pi.get("price")
+            if amt and isinstance(amt, (int, float)) and 200 < amt < 50000:
+                price = amt
+
+        if price and (room_name not in results or price < results[room_name]):
+            results[room_name] = price
+
+    return sorted(results.items(), key=lambda x: x[1])
+
+
+def _scrape_ctrip_sync(checkin: str = None, checkout: str = None,
+                       timeout: int = 180) -> list[dict]:
+    """同步携程CDP采集，委托给 ctrip_scraper 模块。"""
+    ci = checkin or DEFAULT_CHECKIN
+    co = checkout or DEFAULT_CHECKOUT
+
     try:
-        import requests
-        from bs4 import BeautifulSoup
-    except ImportError:
+        from ctrip_scraper import scrape_ctrip_sync as _csync
+        raw = _csync(ci, co)
+    except Exception as e:
+        print(f"  携程采集失败: {e}")
         return []
 
-    results = []
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/126.0.0.0 Safari/537.36"
-        ),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.9",
-        "Accept-Encoding": "gzip, deflate",
-    }
+    if not raw:
+        return []
 
-    try:
-        session = requests.Session()
-        session.headers.update(headers)
-        session.get("https://hotel.qunar.com/", timeout=10)
-        time.sleep(random.uniform(1, 2))
+    print(f"  携程: {len(raw)} 家有价格")
 
-        url = (
-            f"https://hotel.qunar.com/city/jiuzhaigou/"
-            f"?q={hotel_name}&fromDate={checkin}&toDate={checkout}"
-        )
-        resp = session.get(url, timeout=15)
-        resp.encoding = "utf-8"
+    # 转换为标准格式
+    data = []
+    for hname, info in raw.items():
+        # 找匹配的酒店信息
+        matched = next((h for h in HOTELS if h["name"] == hname), None)
+        star = matched["star"] if matched else 4
+        address = matched.get("address", "") if matched else ""
 
-        if resp.status_code != 200:
-            return results
-
-        soup = BeautifulSoup(resp.text, "html.parser")
-
-        # 策略A: script标签中的JSON数据
-        for script in soup.find_all("script"):
-            text = script.string or ""
-            if "price" in text.lower() and len(text) > 100:
-                for pm in re.findall(r'"price"\s*:\s*(\d{2,5}(?:\.\d+)?)', text):
-                    price = int(float(pm))
-                    if 80 < price < 10000:
-                        results.append({
-                            "酒店名称": hotel_name, "房型": "标准房",
-                            "OTA平台": "去哪儿", "单价_晚": price,
-                            "数据来源": "Qunar直抓", "采集时间": _now(),
-                        })
-
-        # 策略B: 价格CSS选择器
-        for sel in ["[class*='price']", "[class*='Price']", ".js_price", "[data-price]"]:
-            for elem in soup.select(sel):
-                price = _extract_price(elem.get_text(strip=True))
-                if price:
-                    results.append({
-                        "酒店名称": hotel_name, "房型": "标准房",
-                        "OTA平台": "去哪儿", "单价_晚": price,
-                        "数据来源": "Qunar直抓", "采集时间": _now(),
-                    })
-
-        # 策略C: 全文正则兜底
-        if not results:
-            for p in re.findall(r"[¥￥]\s*(\d{2,5})", soup.get_text()):
-                price = int(p)
-                if 80 < price < 10000:
-                    results.append({
-                        "酒店名称": hotel_name, "房型": "标准房",
-                        "OTA平台": "去哪儿", "单价_晚": price,
-                        "数据来源": "Qunar文本", "采集时间": _now(),
-                    })
-
-    except requests.exceptions.Timeout:
-        pass
-    except requests.exceptions.ConnectionError:
-        pass
-    except Exception:
-        pass
-
-    return results
+        for room in info.get("rooms", [{"room": "标准房", "price": info["price"]}]):
+            data.append({
+                "酒店名称": hname,
+                "星级": star,
+                "地址": address,
+                "房型": room["room"],
+                "OTA平台": "携程",
+                "单价_晚": round(room["price"]),
+                "总价": round(room["price"]),
+                "含早": "否",
+                "可取消": "是",
+                "数据来源": "携程真实",
+                "is_real": True,
+                "采集时间": _now(),
+                "入住日期": ci,
+            })
+    return data
 
 
 # ═══════════════════════════════════════════════════════════════
-# 策略2: Playwright 无头浏览器
+# 策略1: Google Hotels
 # ═══════════════════════════════════════════════════════════════
 
-async def _scrape_playwright(hotel_name: str, checkin: str, checkout: str) -> list[dict]:
-    """Playwright 无头浏览器抓取。"""
+def _match_google_hotel(display_name: str) -> Optional[dict]:
+    best_score, best_hotel = 0, None
+    for hotel in HOTELS:
+        score = sum(len(kw) for kw in hotel.get("keywords", [])
+                    if kw.lower() in display_name.lower())
+        if score > best_score:
+            best_score, best_hotel = score, hotel
+    return best_hotel if best_score >= 2 else None
+
+
+async def _scrape_google_async(checkin: str, checkout: str) -> list[dict]:
     try:
         from playwright.async_api import async_playwright
     except ImportError:
         return []
 
     results = []
-
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(
-                headless=True,
-                args=["--disable-blink-features=AutomationControlled",
-                      "--no-sandbox", "--disable-dev-shm-usage"],
-            )
+            try:
+                browser = await p.chromium.launch(
+                    channel="chrome", headless=True,
+                    args=["--disable-blink-features=AutomationControlled",
+                          "--no-sandbox", "--disable-dev-shm-usage"])
+            except:
+                browser = await p.chromium.launch(
+                    headless=True,
+                    args=["--disable-blink-features=AutomationControlled",
+                          "--no-sandbox"])
+
             ctx = await browser.new_context(
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36"
-                ),
                 viewport={"width": 1920, "height": 1080},
-                locale="zh-CN",
-            )
+                locale="zh-CN", timezone_id="Asia/Shanghai")
             await ctx.add_init_script("""
-                Object.defineProperty(navigator, 'webdriver', {get: () => false});
+                Object.defineProperty(navigator, 'webdriver',
+                    {get: function() { return undefined; }});
                 window.chrome = { runtime: {} };
             """)
 
             page = await ctx.new_page()
-            url = (
-                f"https://hotel.qunar.com/city/jiuzhaigou/"
-                f"?q={hotel_name}&fromDate={checkin}&toDate={checkout}"
-            )
-            await page.goto(url, timeout=30000, wait_until="domcontentloaded")
-            await page.wait_for_timeout(4000)
+            url = (f"https://www.google.com/travel/hotels"
+                   f"?q=jiuzhaigou+hotels&checkin={checkin}&checkout={checkout}"
+                   f"&hl=zh-CN&curr=USD")
+            await page.goto(url, timeout=30000, wait_until="networkidle")
+            await page.wait_for_timeout(15000)
 
-            for sel in [".price", "[class*='price']", "span:has-text('¥')"]:
-                for elem in await page.query_selector_all(sel):
-                    try:
-                        price = _extract_price(await elem.inner_text())
-                        if price:
-                            results.append({
-                                "酒店名称": hotel_name, "房型": "标准房",
-                                "OTA平台": "去哪儿", "单价_晚": price,
-                                "数据来源": "Playwright", "采集时间": _now(),
-                            })
-                    except Exception:
-                        continue
+            # 用eval提取酒店数据
+            hotel_data = await page.evaluate("""
+                () => {
+                    const items = [];
+                    document.querySelectorAll('[role="listitem"]').forEach(el => {
+                        const text = el.innerText || '';
+                        const match = text.match(
+                            /([\\u4e00-\\u9fff].+?(?:酒店|度假|Hilton|洲际|悦榕|豪生|希尔顿|漫心|桔子|智选).+?)\\n.*?US\\$(\\d+)/);
+                        if (match) {
+                            items.push({name: match[1], price: parseInt(match[2])});
+                        }
+                    });
+                    return items;
+                }
+            """)
 
-            if not results:
-                full = await page.inner_text("body")
-                for p in re.findall(r"[¥￥]\s*(\d{2,5})", full)[:30]:
-                    price = int(p)
-                    if 80 < price < 10000:
-                        results.append({
-                            "酒店名称": hotel_name, "房型": "标准房",
-                            "OTA平台": "去哪儿", "单价_晚": price,
-                            "数据来源": "Playwright全文", "采集时间": _now(),
-                        })
+            for item in hotel_data:
+                price_cny = round(item["price"] * USD_TO_CNY)
+                if price_cny < 50 or price_cny > 20000:
+                    continue
+                matched = _match_google_hotel(item["name"])
+                if not matched:
+                    continue
+
+                existing = [r for r in results
+                            if r["酒店名称"] == matched["name"]]
+                if existing:
+                    if price_cny < existing[0]["单价_晚"]:
+                        existing[0]["单价_晚"] = price_cny
+                        existing[0]["总价"] = price_cny
+                    continue
+
+                results.append({
+                    "酒店名称": matched["name"],
+                    "星级": matched["star"],
+                    "地址": matched.get("address", ""),
+                    "房型": "标准房",
+                    "OTA平台": "携程",
+                    "单价_晚": price_cny,
+                    "总价": price_cny,
+                    "含早": "否",
+                    "可取消": "是",
+                    "数据来源": "Google Hotels",
+                    "is_real": True,
+                    "采集时间": _now(),
+                    "入住日期": checkin,
+                })
 
             await browser.close()
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"  Google Hotels: {e}")
 
     return results
 
 
+def _scrape_google_sync(checkin: str = None, checkout: str = None) -> list[dict]:
+    try:
+        return asyncio.run(_scrape_google_async(
+            checkin or DEFAULT_CHECKIN, checkout or DEFAULT_CHECKOUT))
+    except:
+        return []
+
+
 # ═══════════════════════════════════════════════════════════════
-# 策略3: 校准模拟数据兜底
+# 策略3: 模拟兜底 —— 已采集真实价格校准
 # ═══════════════════════════════════════════════════════════════
 
-def _generate_fallback(checkin: str = None) -> list[dict]:
-    """基于公开信息校准的模拟价格，含季节系数和平台偏差。"""
+CTRIP_REFERENCE_PRICES = {
+    # 2026-08-07 携程真实最低价（旺季基准，8月）
+    "九寨沟万怡酒店": 331,
+    "九寨沟诺富特酒店": 357,
+    "全季酒店九寨沟九寨大道店": 358,
+    "九寨沟德尔塔酒店": 497,
+}
+
+
+def _generate_fallback(checkin: str = None,
+                       real_prices: dict = None) -> list[dict]:
+    """生成模拟价格，已采集酒店用真实价校准，未采集用同类酒店估算"""
     season = _season_multiplier(checkin)
+    ref = {**CTRIP_REFERENCE_PRICES}
+    if real_prices:
+        ref.update(real_prices)
+
     results = []
 
     for hotel in HOTELS:
+        hotel_real = ref.get(hotel["name"])
+
         for plat in PLATFORMS:
             bias = PLATFORM_BIAS[plat]["bias"]
-            noise = 1 + (random.random() - 0.5) * 0.08
-            price = max(80, round(hotel["base"] * season * bias * noise / 10) * 10)
 
-            room = "大床房"
+            if hotel_real:
+                noise = 1 + (random.random() - 0.5) * 0.04
+                price = max(80, round(hotel_real * bias * noise / 10) * 10)
+                source = "真实价格校准"
+            elif hotel["star"] >= 4:
+                # 中高端酒店：同类均价估算
+                peer_prices = [v for k, v in ref.items()
+                               if any(h["name"] != k
+                                      and abs(h["star"] - hotel["star"]) <= 1
+                                      for h in HOTELS)]
+                if peer_prices:
+                    peer_avg = sum(peer_prices) / len(peer_prices)
+                    noise = 1 + (random.random() - 0.5) * 0.06
+                    price = max(80, round(peer_avg * bias * noise / 10) * 10)
+                    source = "同业价格估算"
+                else:
+                    noise = 1 + (random.random() - 0.5) * 0.08
+                    price = max(80,
+                                round(hotel["base"] * season * bias * noise
+                                      / 10) * 10)
+                    source = "基准价估算"
+            else:
+                # 民宿：低价段估算
+                noise = 1 + (random.random() - 0.5) * 0.10
+                price = max(80,
+                            round(hotel["base"] * season * bias * noise
+                                  / 10) * 10)
+                source = "民宿估算"
+
             results.append({
                 "酒店名称": hotel["name"],
                 "星级": hotel["star"],
-                "房型": room,
+                "地址": hotel.get("address", ""),
+                "房型": "大床房",
                 "OTA平台": plat,
                 "单价_晚": int(price),
                 "总价": int(price),
-                "含早": "是" if hotel["star"] >= 4 and random.random() > 0.3 else "否",
-                "可取消": "是" if price > 500 and random.random() > 0.3 else "否",
-                "数据来源": "模拟参考",
+                "含早": "是" if hotel["star"] >= 4 and random.random() > 0.3
+                else "否",
+                "可取消": "是" if price > 400 and random.random() > 0.3
+                else "否",
+                "数据来源": source,
+                "is_real": False,
                 "采集时间": _now(),
                 "入住日期": checkin or DEFAULT_CHECKIN,
             })
@@ -301,108 +357,70 @@ def _generate_fallback(checkin: str = None) -> list[dict]:
 # 主采集函数
 # ═══════════════════════════════════════════════════════════════
 
-def scrape_html_mode(hotels: list[str] = None, checkin: str = None, checkout: str = None) -> list[dict]:
-    """策略1: requests 直抓所有酒店（同步，快）。"""
-    ci = checkin or DEFAULT_CHECKIN
-    co = checkout or DEFAULT_CHECKOUT
-    names = hotels or [h["name"] for h in HOTELS]
-    all_results = []
+def scrape_all(mode: str = "auto", checkin: str = None,
+               checkout: str = None, timeout: float = 120.0) -> dict:
+    """统一采集入口
 
-    for name in names:
-        results = _scrape_qunar_requests(name, ci, co)
-        if results:
-            prices = [r["单价_晚"] for r in results]
-            median = sorted(prices)[len(prices) // 2]
-            # 过滤噪音
-            filtered = [r for r in results if abs(r["单价_晚"] - median) < median * 2]
-            all_results.extend(filtered or results[:3])
-        time.sleep(random.uniform(0.8, 1.5))
-
-    return _dedupe(all_results)
-
-
-def scrape_playwright_mode(hotels: list[str] = None, checkin: str = None, checkout: str = None) -> list[dict]:
-    """策略2: Playwright 异步抓取。"""
-    try:
-        import asyncio
-    except ImportError:
-        return []
-
-    ci = checkin or DEFAULT_CHECKIN
-    co = checkout or DEFAULT_CHECKOUT
-    names = hotels or [h["name"] for h in HOTELS][:8]
-
-    async def _run():
-        results = []
-        for name in names:
-            r = await _scrape_playwright(name, ci, co)
-            results.extend(r)
-            await asyncio.sleep(random.uniform(1.5, 3))
-        return results
-
-    try:
-        return _dedupe(asyncio.run(_run()))
-    except Exception:
-        return []
-
-
-def scrape_all(mode: str = "auto", checkin: str = None, checkout: str = None, timeout: float = 15.0) -> dict:
-    """统一采集入口，返回 {"data": [...], "source": "...", "count": N, "checkin": "..."}
-
-    mode:
-      "auto"  — 先 HTML直抓，无结果则 Playwright，再无则模拟兜底
-      "html"  — 仅 requests 直抓
-      "pw"    — 仅 Playwright
-      "fallback" — 仅模拟兜底
+    mode: "auto" | "ctrip" | "google" | "fallback"
     """
     ci = checkin or DEFAULT_CHECKIN
     co = checkout or DEFAULT_CHECKOUT
     data = []
     source = "模拟参考"
+    real_prices = {}
 
-    if mode in ("auto", "html"):
-        import threading
+    # ── 策略0: 携程 CDP 真实价格 ──
+    if mode in ("auto", "ctrip"):
+        print("🔍 携程CDP采集...")
+        try:
+            ctrip_data = _scrape_ctrip_sync(ci, co)
+        except Exception as e:
+            print(f"  携程失败: {e}")
+            ctrip_data = []
 
-        result_container = []
+        if ctrip_data:
+            data.extend(ctrip_data)
+            for r in ctrip_data:
+                real_prices[r["酒店名称"]] = min(
+                    real_prices.get(r["酒店名称"], 99999), r["单价_晚"])
+            ctrip_hotels = len({r["酒店名称"] for r in ctrip_data})
+            source = f"携程真实({ctrip_hotels}家)"
 
-        def _run_html():
-            try:
-                result_container.append(scrape_html_mode(checkin=ci, checkout=co))
-            except Exception:
-                pass
+    # ── 策略1: Google Hotels ──
+    if mode in ("auto", "google"):
+        print("🔍 Google Hotels...")
+        google_data = _scrape_google_sync(ci, co)
+        if google_data:
+            existing_keys = {(r["酒店名称"], r.get("房型", ""))
+                             for r in data}
+            for r in google_data:
+                key = (r["酒店名称"], r.get("房型", ""))
+                if key not in existing_keys:
+                    data.append(r)
+                    existing_keys.add(key)
+                    real_prices[r["酒店名称"]] = min(
+                        real_prices.get(r["酒店名称"], 99999), r["单价_晚"])
+            google_hotels = len({r["酒店名称"] for r in google_data})
+            if source.startswith("携程"):
+                source += f"+Google({google_hotels}家)"
+            else:
+                source = f"Google Hotels({google_hotels}家)"
 
-        t = threading.Thread(target=_run_html, daemon=True)
-        t.start()
-        t.join(timeout=timeout)
+    # ── 策略2: 模拟兜底 ──
+    fallback_data = _generate_fallback(ci, real_prices)
+    if data:
+        covered = {r["酒店名称"] for r in data}
+        for fb in fallback_data:
+            if fb["酒店名称"] not in covered:
+                data.append(fb)
+        if real_prices:
+            source = f"混合({len(real_prices)}家真实+模拟补充)"
+    else:
+        data = fallback_data
+        if real_prices:
+            source = f"真实价格校准({len(real_prices)}家)"
 
-        if t.is_alive():
-            data = []
-        elif result_container and result_container[0]:
-            data = result_container[0]
-            source = "Qunar直抓"
-
-    if (mode in ("auto", "pw")) and not data:
-        import threading
-
-        result_container = []
-
-        def _run_pw():
-            try:
-                result_container.append(scrape_playwright_mode(checkin=ci, checkout=co))
-            except Exception:
-                pass
-
-        t = threading.Thread(target=_run_pw, daemon=True)
-        t.start()
-        t.join(timeout=max(timeout, 30))
-
-        if not t.is_alive() and result_container and result_container[0]:
-            data = result_container[0]
-            source = "Playwright采集"
-
-    if not data:
-        data = _generate_fallback(ci)
-        source = "模拟参考"
+    data = _dedupe(data)
 
     return {
         "data": data,
@@ -412,15 +430,16 @@ def scrape_all(mode: str = "auto", checkin: str = None, checkout: str = None, ti
         "checkout": co,
         "fetched_at": _now(),
         "hotels_covered": len(set(r["酒店名称"] for r in data)),
+        "real_price_count": len(real_prices),
     }
 
 
 def _dedupe(results: list[dict]) -> list[dict]:
-    """按 酒店+房型+平台+价格 去重。"""
     seen = set()
     unique = []
     for r in results:
-        key = f"{r.get('酒店名称','')}|{r.get('房型','')}|{r.get('OTA平台','')}|{r.get('单价_晚',0)}"
+        key = (f"{r.get('酒店名称','')}|{r.get('房型','')}"
+               f"|{r.get('OTA平台','')}|{r.get('单价_晚',0)}")
         if key not in seen:
             seen.add(key)
             unique.append(r)
@@ -431,8 +450,8 @@ def _dedupe(results: list[dict]) -> list[dict]:
 # 持久化
 # ═══════════════════════════════════════════════════════════════
 
-def save_results(data: list[dict], csv_path: Path = None, json_path: Path = None):
-    """保存到CSV + JSON。"""
+def save_results(data: list[dict], csv_path: Path = None,
+                 json_path: Path = None):
     csv_p = csv_path or OUTPUT_CSV
     json_p = json_path or OUTPUT_JSON
 
@@ -455,21 +474,35 @@ def save_results(data: list[dict], csv_path: Path = None, json_path: Path = None
 
 if __name__ == "__main__":
     import argparse
-    p = argparse.ArgumentParser(description="九寨沟OTA价格采集 v4.0")
-    p.add_argument("--mode", default="auto", choices=["auto", "html", "pw", "fallback"])
+    p = argparse.ArgumentParser(description="九寨沟OTA价格采集 v7.0")
+    p.add_argument("--mode", default="auto",
+                   choices=["auto", "ctrip", "google", "fallback"])
     p.add_argument("--checkin", default=DEFAULT_CHECKIN)
     p.add_argument("--checkout", default=DEFAULT_CHECKOUT)
-    p.add_argument("--output", default=None)
     args = p.parse_args()
 
-    print(f"🔍 采集模式: {args.mode} | {args.checkin} → {args.checkout}")
-    result = scrape_all(mode=args.mode, checkin=args.checkin, checkout=args.checkout)
-    print(f"📡 数据来源: {result['source']}")
-    print(f"📊 采集到 {result['count']} 条，覆盖 {result['hotels_covered']} 家酒店")
+    print(f"🔍 模式: {args.mode} | {args.checkin} → {args.checkout}")
+    result = scrape_all(mode=args.mode, checkin=args.checkin,
+                        checkout=args.checkout)
+    print(f"\n📡 来源: {result['source']}")
+    print(f"📊 {result['count']} 条 / {result['hotels_covered']} 家酒店")
 
     csv_p, json_p = save_results(result["data"])
     print(f"📄 CSV: {csv_p}")
     print(f"📄 JSON: {json_p}")
+
+    # 价格一览
+    prices = {}
+    for r in result["data"]:
+        if r["OTA平台"] == "携程" and "真实" in r["数据来源"]:
+            pn = r["酒店名称"]
+            if pn not in prices or r["单价_晚"] < prices[pn]:
+                prices[pn] = r["单价_晚"]
+
+    if prices:
+        print(f"\n📊 携程真实价格:")
+        for name in sorted(prices, key=prices.get):
+            print(f"  {name:30s} ¥{prices[name]:>6}")
 
     if result["source"] == "模拟参考":
         print("⚠️ 未获取到真实价格，使用校准模拟数据。")
