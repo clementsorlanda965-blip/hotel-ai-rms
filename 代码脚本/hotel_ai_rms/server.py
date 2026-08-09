@@ -188,6 +188,23 @@ class APIHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
 
+        # ── API: 决策卡片 ──
+        elif path == "/api/decision-card":
+            try:
+                import sys as _sys
+                _sys.path.insert(0, str(ROOT))
+                from decision_card_builder import CardBuilder
+                builder = CardBuilder()
+                card = builder.build()
+                # 同时附加告警信息
+                with _cache_lock:
+                    raw = _cache.get("data", {})
+                alerts = raw.get("price_alerts", []) if isinstance(raw, dict) else []
+                card["price_alerts"] = alerts
+                self._send_json(card)
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+
         # ── API: 历史价格趋势 ──
         elif path == "/api/trend":
             hotel = params.get("hotel", [None])[0]

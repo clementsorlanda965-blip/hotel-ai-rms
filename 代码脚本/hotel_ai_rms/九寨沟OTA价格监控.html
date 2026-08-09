@@ -3,143 +3,245 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>九寨沟 OTA 价格监控 | AI-RMS 收益驾驶舱</title>
+<title>九寨沟 OTA 价格监控 | AI-RMS 收益驾驶舱 v3.0</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
   :root {
-    --bg: #0a1628;
-    --card: #142642;
+    --bg: #091525;
+    --card: #152844;
     --border: #2a4a6d;
-    --gold: #c8963e;
-    --text: #d0d8e8;
-    --muted: #8899bb;
-    --green: #28a745;
-    --red: #dc3545;
-    --blue: #3b82f6;
+    --gold: #d4a84b;
+    --text: #e0e6f0;
+    --muted: #9aacc8;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --blue: #4da6ff;
     --orange: #f59e0b;
+    --purple: #a78bfa;
+    --card-radius: 10px;
+    --transition: 0.25s cubic-bezier(0.25,0.46,0.45,0.94);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    background: linear-gradient(135deg, #0a1628 0%, #111d35 100%);
+    background: linear-gradient(135deg, #091525 0%, #0f1f3a 100%);
     color: var(--text);
     font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     min-height: 100vh;
   }
 
+  /* ── Header ── */
   .header {
-    background: linear-gradient(90deg, #0d1f3c, #1a3a6b, #0d1f3c);
-    border-bottom: 3px solid var(--gold);
-    padding: 16px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: linear-gradient(90deg, #0b1a33, #1a3a6b, #0b1a33);
+    border-bottom: 2px solid var(--gold);
+    padding: 14px 30px;
+    display: flex; justify-content: space-between; align-items: center;
   }
-  .header h1 { color:#fff; font-size:22px; letter-spacing:2px; }
-  .header .sub { color:var(--gold); font-size:12px; letter-spacing:3px; }
+  .header h1 { color:#fff; font-size:21px; letter-spacing:2px; }
+  .header .sub { color:var(--gold); font-size:11px; letter-spacing:3px; }
   .header .live-dot {
-    display: inline-block; width:8px; height:8px; border-radius:50%;
-    background: var(--green); margin-right:6px; animation: pulse 2s infinite;
+    display:inline-block; width:8px; height:8px; border-radius:50%;
+    background:var(--green); margin-right:6px; animation:pulse 2s infinite;
   }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes valueFlash {
+    0% { color:#fff; }
+    50% { color:var(--gold); text-shadow:0 0 15px rgba(212,168,75,0.6); }
+    100% { color:#fff; }
+  }
 
-  .container { max-width:1500px; margin:0 auto; padding:14px 20px; }
+  .container { max-width:1520px; margin:0 auto; padding:14px 20px; }
 
-  /* KPI cards */
+  /* ── Alert Banner ── */
+  .alert-banner {
+    background: linear-gradient(90deg, #3a1a1a, #4a2020, #3a1a1a);
+    border: 1px solid var(--red); border-radius: var(--card-radius);
+    padding: 12px 20px; margin-bottom: 14px;
+    display: none; align-items: center; gap: 12px;
+    animation: fadeIn 0.4s ease;
+  }
+  .alert-banner.show { display: flex; }
+  .alert-banner .alert-icon { font-size: 20px; flex-shrink: 0; }
+  .alert-banner .alert-text { flex:1; font-size: 12px; line-height: 1.6; }
+  .alert-banner .alert-text b { color: #ff6b6b; }
+  .alert-banner .alert-close {
+    background: none; border: none; color: var(--muted); cursor: pointer;
+    font-size: 16px; padding: 4px 8px;
+  }
+
+  /* ── KPI cards ── */
   .kpi-row { display:flex; gap:12px; margin-bottom:14px; }
   .kpi-card {
     flex:1; background:var(--card); border:1px solid var(--border);
-    border-radius:10px; padding:18px 20px;
+    border-radius:var(--card-radius); padding:16px 18px;
     box-shadow:0 4px 15px rgba(0,0,0,0.3);
     position:relative; overflow:hidden;
+    transition: transform var(--transition), box-shadow var(--transition);
   }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
   .kpi-card::before {
     content:''; position:absolute; top:0; left:0; width:4px; height:100%;
+  }
+  .kpi-card::after {
+    content:''; position:absolute; top:0; left:4px; right:0; height:1px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 60%, transparent 100%);
   }
   .kpi-card.hotel::before { background:var(--blue); }
   .kpi-card.lowest::before { background:var(--green); }
   .kpi-card.avg::before { background:var(--gold); }
   .kpi-card.fresh::before { background:var(--orange); }
-  .kpi-card .val { font-size:28px; font-weight:800; color:#fff; }
+  .kpi-card .val {
+    font-size: 28px; font-weight: 800; color: #fff;
+    font-family: 'Consolas','Cascadia Code','JetBrains Mono','Microsoft YaHei',monospace;
+    font-feature-settings: 'tnum'; letter-spacing: -1px;
+  }
+  .kpi-card .val.flash { animation: valueFlash 0.6s ease; }
   .kpi-card .lbl { font-size:11px; color:var(--muted); margin-top:4px; letter-spacing:1px; }
   .kpi-card .sub-text { font-size:10px; color:var(--muted); margin-top:2px; }
+  .kpi-card .delta { font-size:12px; margin-top:4px; font-weight:600; }
+  .kpi-card .delta.up { color:var(--red); }
+  .kpi-card .delta.down { color:var(--green); }
+  .kpi-card .sparkline { height:28px; margin-top:6px; }
 
-  /* Controls */
+  /* ── Decision Card ── */
+  .decision-row { display: flex; gap: 12px; margin-bottom: 14px; }
+  .decision-card {
+    flex: 1; background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--card-radius); padding: 16px 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+  .decision-card.attack { border-left: 4px solid var(--green); }
+  .decision-card.defend { border-left: 4px solid var(--red); }
+  .decision-card.neutral { border-left: 4px solid var(--gold); }
+  .decision-card .dc-title { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .decision-card .dc-price { font-size: 42px; font-weight: 800; color: #fff; line-height: 1.1;
+    font-family: 'Consolas','Cascadia Code','JetBrains Mono','Microsoft YaHei',monospace; }
+  .decision-card .dc-signal { font-size: 13px; font-weight: 700; margin-top: 4px; }
+  .decision-card .dc-signal.attack { color: var(--green); }
+  .decision-card .dc-signal.defend { color: var(--red); }
+  .decision-card .dc-signal.neutral { color: var(--gold); }
+  .decision-card .dc-detail { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.6; }
+  .decision-card .dc-meta { display: flex; gap: 16px; margin-top: 8px; font-size: 10px; color: var(--muted); }
+  .decision-card .signal-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .signal-tag {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 10px; font-weight: 700;
+  }
+  .signal-tag.green { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid var(--green); }
+  .signal-tag.yellow { background: rgba(245,158,11,0.15); color: var(--orange); border: 1px solid var(--orange); }
+  .signal-tag.red { background: rgba(231,76,60,0.15); color: var(--red); border: 1px solid var(--red); }
+
+  /* ── Controls ── */
   .controls {
     display:flex; gap:10px; flex-wrap:wrap; align-items:center;
     background:var(--card); border:1px solid var(--border);
-    border-radius:10px; padding:12px 18px; margin-bottom:14px;
+    border-radius:var(--card-radius); padding:12px 18px; margin-bottom:14px;
   }
   .btn {
-    background: linear-gradient(135deg, #c8963e, #a67c2e);
-    color:#0a1628; border:none; border-radius:6px; font-weight:700;
-    font-size:13px; padding:8px 20px; cursor:pointer; letter-spacing:1px;
-    transition: all 0.3s; white-space:nowrap;
+    background: linear-gradient(135deg, #d4a84b, #a67c2e);
+    color: #091525; border: none; border-radius: 6px; font-weight: 700;
+    font-size: 13px; padding: 8px 20px; cursor: pointer; letter-spacing: 1px;
+    transition: all 0.3s; white-space: nowrap;
   }
-  .btn:hover { box-shadow:0 4px 15px rgba(200,150,62,0.4); transform:translateY(-1px); }
-  .btn:disabled { opacity:0.5; cursor:not-allowed; }
-  .btn-outline { background:transparent; color:var(--gold); border:1px solid var(--gold); }
-  .btn-outline:hover { background:rgba(200,150,62,0.1); }
-  .btn-green { background:linear-gradient(135deg, #28a745, #1e7e34); color:#fff; }
-  .status-text { font-size:11px; color:var(--muted); margin-left:auto; }
+  .btn:hover { box-shadow: 0 4px 15px rgba(200,150,62,0.4); transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-outline { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+  .btn-outline:hover { background: rgba(212,168,75,0.1); }
+  .btn-green { background: linear-gradient(135deg, #2ecc71, #1e7e34); color: #fff; }
+  .status-text { font-size: 11px; color: var(--muted); margin-left: auto; }
 
-  /* Chart grid */
+  /* ── Charts ── */
   .chart-row { display:flex; gap:12px; margin-bottom:14px; }
   .chart-box {
     flex:1; background:var(--card); border:1px solid var(--border);
-    border-radius:10px; padding:14px; min-height:340px;
+    border-radius:var(--card-radius); padding:14px;
+    min-height: 340px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
   }
-  .chart-box.full { flex:none; width:100%; }
-  .chart-box h3 { color:var(--gold); font-size:14px; margin-bottom:8px; letter-spacing:1px; }
-  .chart-inner { width:100%; height:300px; }
+  .chart-box.wide { flex: 1.5; }
+  .chart-box h3 { color: var(--gold); font-size: 13px; margin-bottom: 8px; letter-spacing: 1px; font-weight: 600; }
+  .chart-inner { width: 100%; height: 300px; }
 
-  /* Table */
-  .section-title {
-    font-size:16px; font-weight:700; color:var(--gold);
-    border-bottom:2px solid var(--gold); padding-bottom:6px; margin:16px 0 10px;
-    letter-spacing:1px;
+  /* ── Skeleton ── */
+  .skeleton {
+    background: linear-gradient(90deg, #152844 25%, #1e3a5f 50%, #152844 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
   }
-  .table-wrap { overflow-x:auto; max-height:420px; overflow-y:auto; border-radius:10px; }
+  .sk-kpi-val { height: 28px; width: 70%; margin-bottom: 8px; }
+  .sk-kpi-lbl { height: 11px; width: 50%; }
+  .sk-chart { height: 300px; border-radius: 8px; }
+
+  /* ── Table ── */
+  .section-title {
+    font-size: 14px; font-weight: 700; color: var(--gold);
+    border-bottom: 2px solid var(--gold); padding-bottom: 6px;
+    margin: 16px 0 10px; letter-spacing: 1px;
+  }
+  .table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; border-radius: 10px; }
   table {
-    width:100%; border-collapse:separate; border-spacing:0;
-    background:var(--card); border:1px solid var(--border); font-size:12px;
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    background: var(--card); border: 1px solid var(--border); font-size: 12px;
   }
   thead th {
-    background:#0d1f3c; color:var(--gold); font-weight:700;
-    padding:10px; text-align:left; position:sticky; top:0;
-    border-bottom:2px solid var(--border); cursor:pointer; user-select:none;
+    background: #0b1a33; color: var(--gold); font-weight: 700;
+    padding: 10px; text-align: left; position: sticky; top: 0; z-index: 1;
+    border-bottom: 2px solid var(--border);
   }
-  tbody td { padding:9px 10px; border-bottom:1px solid rgba(42,74,109,0.3); }
-  tbody tr:hover { background:rgba(200,150,62,0.05); }
-  tbody tr:last-child td { border-bottom:none; }
-  .price-lowest { color:var(--green); font-weight:700; }
+  thead th button {
+    background: none; border: none; color: var(--gold); font-weight: 700;
+    font-size: 12px; cursor: pointer; padding: 0; font-family: inherit;
+  }
+  thead th button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid rgba(42,74,109,0.3); }
+  tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+  tbody tr:hover { background: rgba(212,168,75,0.06); }
+  tbody tr:last-child td { border-bottom: none; }
+  .price-lowest { color: var(--green); font-weight: 700; }
   .badge {
-    display:inline-block; padding:2px 8px; border-radius:10px;
-    font-size:10px; font-weight:700;
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 700;
   }
-  .badge-best { background:rgba(40,167,69,0.2); color:#28a745; border:1px solid #28a745; }
+  .badge-best { background: rgba(46,204,113,0.2); color: var(--green); border: 1px solid var(--green); }
+  .badge-alert { background: rgba(231,76,60,0.2); color: var(--red); border: 1px solid var(--red); }
 
-  /* Toast */
+  /* ── Toast ── */
   .toast {
-    position:fixed; top:20px; right:20px; z-index:9999;
-    padding:12px 22px; border-radius:8px; font-weight:700;
-    animation:fadeIn 0.4s ease; font-size:13px;
+    position: fixed; top: 20px; right: 20px; z-index: 9999;
+    padding: 12px 22px; border-radius: 8px; font-weight: 700;
+    animation: fadeIn 0.4s ease; font-size: 13px; max-width: 400px;
   }
-  .toast-success { background:#1a3a2a; border:1px solid #28a745; color:#28a745; }
-  .toast-error { background:#3a1a1a; border:1px solid #dc3545; color:#dc3545; }
-  .toast-info { background:#1a2a3a; border:1px solid #3b82f6; color:#3b82f6; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(-10px);} to{opacity:1;transform:translateY(0);} }
+  .toast-success { background: rgba(46,204,113,0.15); border: 1px solid var(--green); color: var(--green); }
+  .toast-error { background: rgba(231,76,60,0.15); border: 1px solid var(--red); color: var(--red); }
+  .toast-info { background: rgba(77,166,255,0.15); border: 1px solid var(--blue); color: var(--blue); }
 
-  /* spinner */
   .spinner {
-    display:inline-block; width:14px; height:14px; border:2px solid var(--border);
-    border-top-color:var(--gold); border-radius:50%; animation:spin 0.6s linear infinite;
-    vertical-align:middle; margin-right:6px;
+    display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border);
+    border-top-color: var(--gold); border-radius: 50%; animation: spin 0.6s linear infinite;
+    vertical-align: middle; margin-right: 6px;
   }
-  @keyframes spin { to { transform:rotate(360deg); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  @media (max-width:1000px) {
-    .kpi-row, .chart-row { flex-wrap:wrap; }
-    .kpi-card, .chart-box { min-width:45%; }
+  /* ── Responsive ── */
+  @media (max-width: 1200px) {
+    .kpi-row, .chart-row, .decision-row { flex-wrap: wrap; }
+    .kpi-card, .chart-box, .decision-card { min-width: 48%; }
+    .chart-box.wide { flex: none; min-width: 48%; }
+  }
+  @media (max-width: 768px) {
+    .kpi-card, .chart-box, .decision-card { min-width: 100%; }
+    .header { flex-direction: column; text-align: center; gap: 8px; }
+    .header h1 { font-size: 17px; }
+    .container { padding: 10px; }
+    .controls { gap: 6px; padding: 8px 12px; }
+    .btn { font-size: 11px; padding: 6px 12px; }
+    .dc-price { font-size: 32px !important; }
   }
 </style>
 </head>
@@ -148,7 +250,7 @@
 <div class="header">
   <div>
     <h1>🏔️ 九寨沟 · OTA 价格监控驾驶舱</h1>
-    <div class="sub">携程CDP真实价格 · 竞品情报 · 收益决策</div>
+    <div class="sub">携程CDP真实价格 · 竞品情报 · 收益决策 v3.0</div>
   </div>
   <div style="text-align:right;">
     <div style="font-size:12px;color:var(--muted);"><span class="live-dot"></span><span id="headerTime">--</span></div>
@@ -158,12 +260,30 @@
 
 <div class="container">
 
+  <!-- 🚨 告警横幅 -->
+  <div class="alert-banner" id="alertBanner">
+    <span class="alert-icon">🚨</span>
+    <span class="alert-text" id="alertText"></span>
+    <button class="alert-close" onclick="dismissAlert()" aria-label="关闭告警">✕</button>
+  </div>
+
   <!-- KPI 卡片 -->
-  <div class="kpi-row" id="kpiRow">
-    <div class="kpi-card hotel"><div class="val" id="kpiHotels">--</div><div class="lbl">监控酒店</div><div class="sub-text">携程CDP实时采集</div></div>
-    <div class="kpi-card lowest"><div class="val" id="kpiLowest">--</div><div class="lbl">全网最低价</div><div class="sub-text" id="kpiLowestHotel">--</div></div>
-    <div class="kpi-card avg"><div class="val" id="kpiAvg">--</div><div class="lbl">均价</div><div class="sub-text" id="kpiSpread">--</div></div>
-    <div class="kpi-card fresh"><div class="val" id="kpiFresh">--</div><div class="lbl">数据时间</div><div class="sub-text" id="kpiRecords">--</div></div>
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- 决策卡片 -->
+  <div class="decision-row" id="decisionRow">
+    <div class="decision-card neutral" id="decisionCard" style="flex:1.3;">
+      <div class="dc-title">🎯 建议 BAR 价（今日）</div>
+      <div class="dc-price skeleton sk-kpi-val" id="dcPrice" style="background:var(--card);">--</div>
+      <div class="dc-signal" id="dcSignal">--</div>
+      <div class="dc-detail" id="dcExplanation">加载中...</div>
+      <div class="dc-meta" id="dcMeta"></div>
+    </div>
+    <div class="decision-card" id="signalCard" style="flex:0.7;">
+      <div class="dc-title">🚦 信号灯</div>
+      <div class="signal-row" id="signalRow" style="margin-top:12px;"></div>
+      <div style="margin-top:12px; font-size:11px; color:var(--muted); line-height:1.8;" id="signalDetail"></div>
+    </div>
   </div>
 
   <!-- 控制栏 -->
@@ -175,32 +295,32 @@
     <span class="status-text" id="statusText">就绪</span>
   </div>
 
-  <!-- 图表行 1: 价格对比 + 趋势 -->
+  <!-- 图表行 1 -->
   <div class="chart-row">
-    <div class="chart-box">
-      <h3>📊 酒店价格对比（最低 / 均价 / 最高）</h3>
+    <div class="chart-box wide">
+      <h3 id="titleCompare">📊 酒店价格对比</h3>
       <div class="chart-inner" id="chartCompare"></div>
     </div>
     <div class="chart-box">
-      <h3>📈 近7日价格趋势</h3>
+      <h3 id="titleTrend">📈 近7日价格趋势</h3>
       <div class="chart-inner" id="chartTrend"></div>
     </div>
   </div>
 
-  <!-- 图表行 2: 房型分布 + 价格热力 -->
+  <!-- 图表行 2 -->
   <div class="chart-row">
     <div class="chart-box">
       <h3>🏨 各酒店房型价格分布</h3>
       <div class="chart-inner" id="chartRooms"></div>
     </div>
     <div class="chart-box">
-      <h3>🔥 竞对价格矩阵</h3>
+      <h3>📋 竞对价格矩阵</h3>
       <div class="chart-inner" id="chartMatrix"></div>
     </div>
   </div>
 
   <!-- 价格明细表 -->
-  <div class="section-title">📋 携程实时价格明细 <span style="color:var(--muted);font-size:12px;font-weight:400;">（点击表头排序）</span></div>
+  <div class="section-title">📋 携程实时价格明细 <span style="color:var(--muted);font-size:11px;font-weight:400;">（点击表头排序）</span></div>
   <div class="table-wrap" id="tableContainer"></div>
 
 </div>
@@ -208,30 +328,61 @@
 <div id="toastContainer"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 // 全局状态
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 const HOTEL_COLORS = {
-  '九寨沟诺富特酒店': '#3b82f6',
+  '九寨沟诺富特酒店': '#4da6ff',
   '九寨沟万怡酒店': '#f59e0b',
-  '九寨沟德尔塔酒店': '#8b5cf6',
-  '全季酒店九寨沟九寨大道店': '#10b981',
+  '九寨沟德尔塔酒店': '#a78bfa',
+  '全季酒店九寨沟九寨大道店': '#2ecc71',
+};
+const HOTEL_ABBR = {
+  '九寨沟诺富特酒店': '诺富特',
+  '九寨沟万怡酒店': '万怡',
+  '九寨沟德尔塔酒店': '德尔塔',
+  '全季酒店九寨沟九寨大道店': '全季',
 };
 let dashboardData = null;
+let decisionData = null;
+let previousPrices = {}; // 用于计算delta
 let autoTimer = null;
 let sortCol = -1, sortAsc = true;
+let selectedHotel = null;
+const chartInstances = {};
 
-// ═══════════════════════════════════════════════════════
+// ── Fetch with timeout ──
+function fetchWithTimeout(url, options = {}, timeout = 15000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+}
+
+// ── ECharts instance cache ──
+function getChart(id) {
+  const dom = document.getElementById(id);
+  if (!dom) return null;
+  let inst = chartInstances[id];
+  if (!inst || inst.isDisposed()) {
+    inst = echarts.init(dom, null, { renderer: 'canvas' });
+    chartInstances[id] = inst;
+  }
+  return inst;
+}
+function setChartOption(id, option) {
+  const chart = getChart(id);
+  if (chart) chart.setOption(option, { notMerge: true });
+}
+
+// ═══════════════════════════════════════════════════════════
 // 初始化
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
+  showSkeletons();
   refreshAll();
-  // 响应式图表
   window.addEventListener('resize', () => {
-    ['chartCompare','chartTrend','chartRooms','chartMatrix'].forEach(id => {
-      const dom = document.getElementById(id);
-      if (dom) { const inst = echarts.getInstanceByDom(dom); if (inst) inst.resize(); }
-    });
+    Object.values(chartInstances).forEach(inst => { if (inst && !inst.isDisposed()) inst.resize(); });
   });
 });
 
@@ -241,35 +392,63 @@ function updateTime() {
 setInterval(updateTime, 1000);
 updateTime();
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// 骨架屏
+// ═══════════════════════════════════════════════════════════
+function showSkeletons() {
+  document.getElementById('kpiRow').innerHTML = Array(4).fill(0).map(() =>
+    '<div class="kpi-card"><div class="skeleton sk-kpi-val"></div><div class="skeleton sk-kpi-lbl"></div></div>'
+  ).join('');
+  document.getElementById('dcPrice').innerHTML = '<div class="skeleton sk-kpi-val"></div>';
+  document.getElementById('dcSignal').textContent = '';
+  document.getElementById('dcExplanation').textContent = '加载中...';
+  ['chartCompare','chartTrend','chartRooms','chartMatrix'].forEach(id => {
+    const dom = document.getElementById(id);
+    if (dom) dom.innerHTML = '<div class="skeleton sk-chart"></div>';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
 // 数据获取
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 async function fetchDashboard() {
   try {
-    const resp = await fetch('/api/dashboard');
+    const resp = await fetchWithTimeout('/api/dashboard', {}, 15000);
     if (resp.ok) {
       dashboardData = await resp.json();
       document.getElementById('headerStatus').innerHTML =
-        '<span style="color:#28a745;">🟢 后端在线</span> · ' +
+        '<span style="color:#2ecc71;">🟢 后端在线</span> · ' +
         (dashboardData.health?.last_fetch || '--');
       return dashboardData;
     }
-  } catch(e) { console.log('API不可用:', e.message); }
+  } catch(e) {
+    if (e.name === 'AbortError') console.log('Dashboard API 超时');
+    else console.log('API不可用:', e.message);
+  }
 
-  // 降级：尝试 /api/prices
+  // 降级 /api/prices
   try {
-    const resp = await fetch('/api/prices');
+    const resp = await fetchWithTimeout('/api/prices', {}, 10000);
     if (resp.ok) {
       const result = await resp.json();
       dashboardData = { hotels: [], trends: {}, health: {}, raw: result };
-      document.getElementById('headerStatus').innerHTML =
-        '<span style="color:#f0c040;">⚠️ 降级模式</span>';
+      document.getElementById('headerStatus').innerHTML = '<span style="color:#f59e0b;">⚠️ 降级模式</span>';
       return dashboardData;
     }
   } catch(e) {}
 
-  document.getElementById('headerStatus').innerHTML =
-    '<span style="color:#dc3545;">🔴 后端离线</span> · 运行 python server.py';
+  document.getElementById('headerStatus').innerHTML = '<span style="color:#e74c3c;">🔴 后端离线</span> · 运行 python server.py';
+  return null;
+}
+
+async function fetchDecisionCard() {
+  try {
+    const resp = await fetchWithTimeout('/api/decision-card', {}, 10000);
+    if (resp.ok) {
+      decisionData = await resp.json();
+      return decisionData;
+    }
+  } catch(e) {}
   return null;
 }
 
@@ -279,13 +458,14 @@ async function refreshAll() {
   btn.disabled = true;
   document.getElementById('statusText').textContent = '加载中...';
 
-  const data = await fetchDashboard();
+  const [data, decision] = await Promise.all([fetchDashboard(), fetchDecisionCard()]);
   if (data) {
     renderKPIs(data);
+    renderDecisionCard(decision, data);
     renderCharts(data);
     renderTable(data);
-    document.getElementById('statusText').textContent =
-      '更新于 ' + new Date().toLocaleTimeString('zh-CN');
+    checkAlerts(data, decision);
+    document.getElementById('statusText').textContent = '更新于 ' + new Date().toLocaleTimeString('zh-CN');
   } else {
     document.getElementById('statusText').textContent = '连接失败';
     showToast('⚠️ 后端未连接，请运行 python server.py', 'error');
@@ -297,28 +477,81 @@ async function refreshAll() {
 
 async function triggerScrape() {
   const btn = document.getElementById('scrapeBtn');
-  btn.innerHTML = '<span class="spinner"></span>采集中';
+  btn.innerHTML = '<span class="spinner"></span>采集中（最长120秒）';
   btn.disabled = true;
   document.getElementById('statusText').textContent = 'Chrome CDP 采集中...';
 
+  let success = false;
   try {
-    const resp = await fetch('/api/refresh');
+    const resp = await fetchWithTimeout('/api/refresh', {}, 120000);
     if (resp.ok) {
       const result = await resp.json();
-      showToast('✅ 采集完成: ' + result.count + '条记录', 'success');
+      showToast('✅ 采集完成: ' + (result.count || '?') + '条记录', 'success');
+      success = true;
+      // 检查告警
+      if (result.price_alerts && result.price_alerts.length) {
+        showAlerts(result.price_alerts);
+      }
+    } else {
+      throw new Error('采集返回非200');
     }
   } catch(e) {
-    showToast('❌ 采集失败', 'error');
+    const msg = e.name === 'AbortError' ? '采集超时（>120秒）' : e.message;
+    showToast('❌ 采集失败: ' + msg, 'error');
   }
 
-  await refreshAll();
+  if (success) await refreshAll();
   btn.innerHTML = '🚀 实时采集';
   btn.disabled = false;
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// 告警
+// ═══════════════════════════════════════════════════════════
+function checkAlerts(data, decision) {
+  const alerts = [];
+  // 从 decision card 中取告警
+  if (decision && decision.price_alerts && decision.price_alerts.length) {
+    alerts.push(...decision.price_alerts);
+  }
+  // 从 dashboard raw 数据中取告警
+  if (data.raw && data.raw.price_alerts && data.raw.price_alerts.length) {
+    alerts.push(...data.raw.price_alerts);
+  }
+
+  // 数据过期告警
+  if (data.health) {
+    const cacheAge = data.health.cache_age || 0;
+    if (cacheAge > 10800) {
+      alerts.push({ type: 'stale', msg: '数据已过期超过3小时，请手动采集' });
+    } else if (cacheAge > 3600) {
+      alerts.push({ type: 'stale_warn', msg: '数据已超过1小时未更新' });
+    }
+  }
+
+  if (alerts.length) showAlerts(alerts);
+}
+
+function showAlerts(alerts) {
+  const banner = document.getElementById('alertBanner');
+  const text = document.getElementById('alertText');
+  const msgs = alerts.slice(0, 5).map(a => {
+    if (a.hotel) {
+      return `🔴 <b>${a.hotel.replace('九寨沟','')}</b> 降价 <b>${a.drop_pct}%</b>（¥${a.current_price}，均价¥${a.avg_price}）`;
+    }
+    return `⚠️ ${a.msg || a}`;
+  });
+  text.innerHTML = msgs.join(' &nbsp;|&nbsp; ');
+  banner.classList.add('show');
+}
+
+function dismissAlert() {
+  document.getElementById('alertBanner').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════
 // KPI 卡片
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 function renderKPIs(data) {
   const hotels = data.hotels || [];
   const hotelCount = hotels.length || 4;
@@ -334,29 +567,142 @@ function renderKPIs(data) {
   const spread = Math.max(...allPrices) - lowest;
   const lowestHotel = hotels.find(h => h.min_price === lowest);
 
-  document.getElementById('kpiHotels').textContent = hotelCount;
-  document.getElementById('kpiLowest').textContent = '¥' + lowest;
-  document.getElementById('kpiLowestHotel').textContent = lowestHotel ? lowestHotel.hotel_name : '--';
-  document.getElementById('kpiAvg').textContent = '¥' + avg;
-  document.getElementById('kpiSpread').textContent = '价差 ¥' + spread;
-  document.getElementById('kpiFresh').textContent = data.health?.last_fetch || '--';
-  document.getElementById('kpiRecords').textContent =
-    (data.health?.total_records || '--') + ' 条历史记录';
+  // Delta vs previous data
+  const prevAvg = previousPrices.avg;
+  const deltaAvg = prevAvg ? avg - prevAvg : null;
+  const prevLowest = previousPrices.lowest;
+  const deltaLowest = prevLowest ? lowest - prevLowest : null;
+
+  // 缓存当前数据
+  previousPrices = { avg, lowest };
+
+  const cards = [
+    { id: 'kpiHotels', val: hotelCount, lbl: '监控酒店', sub: '携程CDP实时采集', cls: 'hotel' },
+    { id: 'kpiLowest', val: '¥' + lowest, lbl: '全网最低价',
+      sub: (lowestHotel ? lowestHotel.hotel_name.replace('九寨沟','') : '--') +
+           (deltaLowest !== null ? ` (${deltaLowest > 0 ? '↑' : '↓'}¥${Math.abs(deltaLowest)})` : ''),
+      cls: 'lowest' },
+    { id: 'kpiAvg', val: '¥' + avg, lbl: '均价',
+      sub: '价差 ¥' + spread + (deltaAvg !== null ? ` · 较上次${deltaAvg > 0 ? '↑' : '↓'}¥${Math.abs(deltaAvg)}` : ''),
+      cls: 'avg' },
+    { id: 'kpiFresh', val: data.health?.last_fetch || '--', lbl: '数据时间',
+      sub: (data.health?.total_records || '--') + ' 条历史记录', cls: 'fresh' },
+  ];
+
+  document.getElementById('kpiRow').innerHTML = cards.map(c => `
+    <div class="kpi-card ${c.cls}">
+      <div class="val" id="${c.id}">${c.val}</div>
+      <div class="lbl">${c.lbl}</div>
+      <div class="sub-text">${c.sub}</div>
+    </div>
+  `).join('');
 }
 
-// ═══════════════════════════════════════════════════════
-// ECharts 图表
-// ═══════════════════════════════════════════════════════
-function getChartDom(id) {
-  const dom = document.getElementById(id);
-  let inst = echarts.getInstanceByDom(dom);
-  if (inst) inst.dispose();
-  return echarts.init(dom, 'dark');
+// ═══════════════════════════════════════════════════════════
+// 决策卡片
+// ═══════════════════════════════════════════════════════════
+function renderDecisionCard(decision, data) {
+  const card = document.getElementById('decisionCard');
+  const signalCard = document.getElementById('signalCard');
+
+  if (!decision || decision.error) {
+    // 本地计算简易决策卡片
+    const hotels = data.hotels || [];
+    if (!hotels.length) {
+      document.getElementById('dcPrice').textContent = '--';
+      document.getElementById('dcSignal').textContent = '数据不足';
+      return;
+    }
+    const selfHotel = hotels.find(h => h.hotel_name && h.hotel_name.includes('诺富特'));
+    const compAvg = hotels.filter(h => !(h.hotel_name || '').includes('诺富特'))
+      .reduce((s, h) => s + (h.min_price || 0), 0) /
+      (hotels.filter(h => !(h.hotel_name || '').includes('诺富特')).length || 1);
+    const selfPrice = selfHotel ? selfHotel.min_price : (hotels[0] && hotels[0].min_price) || 357;
+    const diff = Math.round(selfPrice - compAvg);
+    const signal = diff > 30 ? 'defend' : (diff < -20 ? 'attack' : 'neutral');
+    renderSimpleDecision(selfPrice, compAvg, diff, signal, data);
+    renderSimpleSignals(selfPrice, compAvg, data);
+    return;
+  }
+
+  const bar = decision.bar_pricing || {};
+  const comp = decision.competition || {};
+  const fin = decision.financials || {};
+  const adv = decision.adversarial || {};
+  const signals = decision.signals || [];
+
+  const adEmoji = { attack: '🟢 进攻', defend: '🔴 防守', neutral: '🟡 平价' };
+  const signal = bar.attack_defense || 'neutral';
+
+  card.className = 'decision-card ' + signal;
+  document.getElementById('dcPrice').textContent = '¥' + (bar.recommended_bar || '--');
+  document.getElementById('dcSignal').innerHTML =
+    `<span class="dc-signal ${signal}">${adEmoji[signal] || signal} · 信心度 ${(bar.confidence || 0) * 100 | 0}%</span>`;
+  document.getElementById('dcExplanation').textContent = bar.explanation || '';
+  document.getElementById('dcMeta').innerHTML =
+    `<span>MPI ${comp.mpi || '--'}</span><span>ARI ${comp.ari || '--'}</span><span>RGI ${comp.rgi || '--'}</span>` +
+    `<span>GOP率 ${fin.gop_rate || '--'}%</span><span>红蓝: ${adv.verdict || '--'} ${adv.score || '--'}分</span>`;
+
+  // 信号灯
+  const signalTags = [];
+  (signals || []).forEach(s => {
+    let cls = 'yellow';
+    if (s.includes('🟢')) cls = 'green';
+    else if (s.includes('🔴')) cls = 'red';
+    signalTags.push(`<span class="signal-tag ${cls}">${s}</span>`);
+  });
+  document.getElementById('signalRow').innerHTML = signalTags.join('');
+
+  const brakeHtml = (adv.brake_conditions || []).length
+    ? `<span style="color:var(--red);">⚠️ ${adv.brake_conditions.length} 项刹车条件</span>`
+    : '<span style="color:var(--green);">✅ 无刹车条件</span>';
+  document.getElementById('signalDetail').innerHTML =
+    `竞对判定: ${comp.verdict || '--'}<br>${brakeHtml}<br>${fin.breakeven_status || ''}`;
 }
 
-const textColor = '#8899bb';
-const axisCommon = { axisLine:{lineStyle:{color:'#2a4a6d'}}, axisTick:{show:false},
-  axisLabel:{color:textColor,fontSize:10}, splitLine:{lineStyle:{color:'rgba(42,74,109,0.3)'}} };
+function renderSimpleDecision(selfPrice, compAvg, diff, signal, data) {
+  const card = document.getElementById('decisionCard');
+  card.className = 'decision-card ' + signal;
+  document.getElementById('dcPrice').textContent = '¥' + selfPrice;
+  const labels = { attack: '🟢 进攻 · 低于竞对均价', defend: '🔴 防守 · 高于竞对均价', neutral: '🟡 平价 · 与竞对齐平' };
+  document.getElementById('dcSignal').innerHTML = `<span class="dc-signal ${signal}">${labels[signal]}</span>`;
+  document.getElementById('dcExplanation').textContent =
+    `竞对均价 ¥${Math.round(compAvg)}，差额 ¥${Math.abs(diff)}。` +
+    (signal === 'attack' ? '可适度上调，提高利润。' : signal === 'defend' ? '关注竞对动态，防止份额流失。' : '维持现价，持续监控。');
+  document.getElementById('dcMeta').innerHTML = '';
+}
+
+function renderSimpleSignals(selfPrice, compAvg, data) {
+  const tags = [];
+  // 价格倒挂检测
+  const hotels = data.hotels || [];
+  const selfHotel = hotels.find(h => (h.hotel_name || '').includes('诺富特'));
+  if (selfHotel && selfHotel.min_price > compAvg) {
+    tags.push('<span class="signal-tag red">🔴 价格偏高</span>');
+  } else {
+    tags.push('<span class="signal-tag green">🟢 价格合理</span>');
+  }
+  // 数据新鲜度
+  if (data.health) {
+    const age = data.health.cache_age || 0;
+    if (age > 3600) tags.push('<span class="signal-tag yellow">🟡 数据>1h</span>');
+    else tags.push('<span class="signal-tag green">🟢 数据新鲜</span>');
+  }
+  document.getElementById('signalRow').innerHTML = tags.join('');
+  document.getElementById('signalDetail').innerHTML =
+    `竞对均价: ¥${Math.round(compAvg)}<br>价差: ¥${Math.abs(Math.round(selfPrice - compAvg))}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ECharts 公用配置
+// ═══════════════════════════════════════════════════════════
+const textColor = '#9aacc8';
+const axisCommon = {
+  axisLine: { lineStyle: { color: '#2a4a6d' } },
+  axisTick: { show: false },
+  axisLabel: { color: textColor, fontSize: 10 },
+  splitLine: { lineStyle: { color: 'rgba(42,74,109,0.2)' } },
+};
 
 function renderCharts(data) {
   renderCompareChart(data);
@@ -365,204 +711,276 @@ function renderCharts(data) {
   renderMatrixChart(data);
 }
 
-// 图表1: 酒店价格对比
+// ═══════════════════════════════════════════════════════════
+// 图表1: 价格对比（分组柱状图 — P0修复版）
+// ═══════════════════════════════════════════════════════════
 function renderCompareChart(data) {
   const hotels = data.hotels || [];
   if (!hotels.length) return;
 
-  const chart = getChartDom('chartCompare');
-  const names = hotels.map(h => h.hotel_name.replace('九寨沟','').replace('酒店',''));
+  const names = hotels.map(h => HOTEL_ABBR[h.hotel_name] || h.hotel_name);
   const mins = hotels.map(h => h.min_price);
   const avgs = hotels.map(h => h.avg_price);
   const maxs = hotels.map(h => h.max_price);
-  const colors = hotels.map(h => HOTEL_COLORS[h.hotel_name] || '#c8963e');
+  const globalMin = Math.min(...mins);
+  const avgLine = Math.round(avgs.reduce((a,b)=>a+b,0) / avgs.length);
 
-  chart.setOption({
-    tooltip: { trigger:'axis', axisPointer:{type:'shadow'},
+  // 动态标题
+  const minHotel = hotels.find(h => h.min_price === globalMin);
+  document.getElementById('titleCompare').textContent =
+    '📊 酒店价格对比 · ' + (minHotel ? (HOTEL_ABBR[minHotel.hotel_name] || minHotel.hotel_name) + '最低 ¥' + globalMin : '');
+
+  setChartOption('chartCompare', {
+    tooltip: {
+      trigger: 'axis', axisPointer: { type: 'shadow' },
+      valueFormatter: v => '¥' + v.toLocaleString(),
       formatter: p => {
         let s = '<b>' + hotels[p[0].dataIndex].hotel_name + '</b><br/>';
-        p.forEach(item => { s += item.marker + ' ' + item.seriesName + ': ¥' + item.value + '<br/>'; });
+        p.forEach(item => { s += item.marker + ' ' + item.seriesName + ': ¥' + item.value.toLocaleString() + '<br/>'; });
         return s;
       }
     },
-    legend: { data:['最低价','均价','最高价'], textStyle:{color:textColor,fontSize:10}, top:5 },
-    grid: { left:'10%', right:'5%', top:'15%', bottom:'10%' },
-    xAxis: { type:'category', data:names, axisLabel:{color:textColor,fontSize:10,rotate:15},
-      axisLine:{lineStyle:{color:'#2a4a6d'}} },
-    yAxis: { type:'value', name:'¥', ...axisCommon },
+    legend: { data: ['最低价','均价','最高价'], textStyle: { color: textColor, fontSize: 10 }, bottom: 0 },
+    grid: { left: '8%', right: '5%', top: '8%', bottom: '14%' },
+    xAxis: {
+      type: 'category', data: names,
+      axisLabel: { color: textColor, fontSize: 10 },
+      axisLine: { lineStyle: { color: '#2a4a6d' } },
+    },
+    yAxis: { type: 'value', name: '¥', min: 0, ...axisCommon },
     series: [
-      { name:'最低价', type:'bar', data:mins, itemStyle:{borderRadius:[4,4,0,0]},
-        label:{show:true,position:'inside',fontSize:10,formatter:'¥{c}'} },
-      { name:'均价', type:'bar', data:avgs, itemStyle:{color:'#f59e0b',borderRadius:[4,4,0,0]},
-        label:{show:true,position:'inside',fontSize:9,formatter:'¥{c}'} },
-      { name:'最高价', type:'bar', data:maxs, itemStyle:{color:'#ef4444',borderRadius:[4,4,0,0]},
-        label:{show:true,position:'top',fontSize:9,formatter:'¥{c}',color:textColor} },
-    ]
+      {
+        name: '最低价', type: 'bar', barGap: '10%', barWidth: '18%',
+        data: mins.map((v, i) => ({
+          value: v,
+          itemStyle: v === globalMin
+            ? { color: '#2ecc71', borderRadius: [4, 4, 0, 0], borderColor: '#fff', borderWidth: 1 }
+            : { color: '#4da6ff', borderRadius: [4, 4, 0, 0] },
+        })),
+      },
+      {
+        name: '均价', type: 'bar', barWidth: '18%',
+        data: avgs.map(v => ({ value: v, itemStyle: { color: '#f59e0b', borderRadius: [4, 4, 0, 0] } })),
+      },
+      {
+        name: '最高价', type: 'bar', barWidth: '18%',
+        data: maxs.map(v => ({ value: v, itemStyle: { color: '#e74c3c', borderRadius: [4, 4, 0, 0] } })),
+        label: { show: true, position: 'top', fontSize: 9, color: textColor, formatter: '¥{c}' },
+        markLine: {
+          silent: true, symbol: 'none',
+          lineStyle: { type: 'dashed', color: '#f59e0b', width: 1 },
+          label: { formatter: '均价 ¥{c}', fontSize: 9, color: '#f59e0b' },
+          data: [{ yAxis: avgLine, name: '均价线' }],
+        },
+      },
+    ],
   });
 }
 
-// 图表2: 近7日趋势
+// ═══════════════════════════════════════════════════════════
+// 图表2: 近7日价格趋势（折线图 + 底价线）
+// ═══════════════════════════════════════════════════════════
 function renderTrendChart(data) {
   const trends = data.trends || {};
-  const chart = getChartDom('chartTrend');
   const hotelNames = Object.keys(trends);
 
   if (!hotelNames.length) {
-    // 无历史数据时显示提示
-    chart.setOption({
-      title: { text:'暂无历史趋势数据', left:'center', top:'center',
-        textStyle:{color:textColor,fontSize:14} },
+    setChartOption('chartTrend', {
+      title: { text: '暂无历史趋势数据（需积累≥2天数据）', left: 'center', top: 'center',
+        textStyle: { color: textColor, fontSize: 13 } },
     });
     return;
   }
 
-  const series = hotelNames.map(name => ({
-    name: name.replace('九寨沟','').replace('酒店',''),
-    type: 'line',
-    data: (trends[name] || []).map(d => d.min_price),
-    smooth: true,
-    symbol: 'circle',
-    symbolSize: 6,
-    lineStyle: { width:2 },
-    itemStyle: { color: HOTEL_COLORS[name] || '#c8963e' },
-  }));
+  const series = hotelNames.map(name => {
+    const prices = (trends[name] || []).map(d => d.min_price);
+    const color = HOTEL_COLORS[name] || '#d4a84b';
+    return {
+      name: HOTEL_ABBR[name] || name,
+      type: 'line',
+      data: prices,
+      smooth: true,
+      symbol: 'circle', symbolSize: 5,
+      lineStyle: { width: 2 },
+      itemStyle: { color },
+      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+        { offset: 0, color: color.replace(')', ',0.15)').replace('rgb','rgba').replace('#4da6ff','rgba(77,166,255,0.15)').replace('#f59e0b','rgba(245,158,11,0.15)').replace('#a78bfa','rgba(167,139,250,0.15)').replace('#2ecc71','rgba(46,204,113,0.15)') },
+        { offset: 1, color: 'rgba(0,0,0,0)' },
+      ]) },
+    };
+  });
 
-  // 取第一个酒店的日期作为x轴
   const dates = (trends[hotelNames[0]] || []).map(d => d.fetch_date);
 
-  chart.setOption({
-    tooltip: { trigger:'axis',
+  document.getElementById('titleTrend').textContent =
+    '📈 近7日价格趋势 · ' + dates.length + '个数据点';
+
+  setChartOption('chartTrend', {
+    tooltip: { trigger: 'axis',
       formatter: p => {
         let s = '<b>' + p[0].axisValue + '</b><br/>';
         p.forEach(item => { s += item.marker + ' ' + item.seriesName + ': ¥' + item.value + '<br/>'; });
         return s;
       }
     },
-    legend: { data: series.map(s=>s.name), textStyle:{color:textColor,fontSize:9}, top:5, type:'scroll' },
-    grid: { left:'8%', right:'5%', top:'18%', bottom:'8%' },
-    xAxis: { type:'category', data:dates, ...axisCommon },
-    yAxis: { type:'value', name:'¥', ...axisCommon },
+    legend: { data: series.map(s => s.name), textStyle: { color: textColor, fontSize: 9 }, bottom: 0, type: 'scroll' },
+    grid: { left: '8%', right: '5%', top: '8%', bottom: '14%' },
+    xAxis: { type: 'category', data: dates, ...axisCommon },
+    yAxis: { type: 'value', name: '¥', ...axisCommon },
     series: series,
   });
 }
 
-// 图表3: 房型价格分布（散点/气泡）
+// ═══════════════════════════════════════════════════════════
+// 图表3: 房型价格分布（横向条形图 — P0完全重做）
+// ═══════════════════════════════════════════════════════════
 function renderRoomChart(data) {
+  const chart = getChart('chartRooms');
   const hotels = data.hotels || [];
-  const chart = getChartDom('chartRooms');
 
-  if (!hotels.length) return;
-
-  // 构建房型数据：从 raw API 或 hotels 数组
-  const allRooms = [];
+  // 从 raw 数据提取房型明细
+  let allRooms = [];
   if (data.raw && data.raw.data) {
-    const roomMap = {};
     data.raw.data.forEach(r => {
-      const key = r['酒店名称'] + '|' + r['房型'];
-      if (!roomMap[key] || r['单价_晚'] < roomMap[key].price) {
-        roomMap[key] = { hotel: r['酒店名称'], room: r['房型'], price: r['单价_晚'] };
-      }
+      allRooms.push({
+        hotel: r['酒店名称'],
+        room: r['房型'] || '标准房',
+        price: r['单价_晚'],
+      });
     });
-    Object.values(roomMap).forEach(r => allRooms.push(r));
+  }
+
+  if (!allRooms.length && hotels.length) {
+    hotels.forEach(h => {
+      allRooms.push({ hotel: h.hotel_name, room: '最低房型', price: h.min_price });
+      allRooms.push({ hotel: h.hotel_name, room: '最高房型', price: h.max_price });
+    });
+  }
+
+  if (!allRooms.length) {
+    chart.setOption({
+      title: { text: '暂无房型数据', left: 'center', top: 'center',
+        textStyle: { color: textColor, fontSize: 13 } },
+    });
+    return;
   }
 
   // 按酒店分组
-  const hotelGroups = {};
-  allRooms.forEach(r => {
-    if (!hotelGroups[r.hotel]) hotelGroups[r.hotel] = [];
-    hotelGroups[r.hotel].push(r);
+  const hotelNames = [...new Set(allRooms.map(r => r.hotel))];
+
+  // 多 grid 横向条形图
+  const grids = [], yAxes = [], xAxes = [], series = [];
+  const n = hotelNames.length;
+  const gridH = (100 / n) - 1;
+
+  hotelNames.forEach((hotel, idx) => {
+    const rooms = allRooms.filter(r => r.hotel === hotel)
+      .sort((a, b) => b.price - a.price);
+
+    grids.push({
+      left: '28%', right: '8%',
+      top: (idx * (gridH + 1)) + '%',
+      height: gridH + '%',
+    });
+    yAxes.push({
+      gridIndex: idx,
+      type: 'category',
+      data: rooms.map(r => (r.room.length > 14 ? r.room.slice(0, 14) + '…' : r.room)),
+      axisLabel: { color: textColor, fontSize: 9 },
+      axisLine: { show: false }, axisTick: { show: false },
+    });
+    xAxes.push({
+      gridIndex: idx,
+      type: 'value', min: 0,
+      ...axisCommon,
+      axisLabel: { ...axisCommon.axisLabel, formatter: '¥{value}' },
+    });
+    series.push({
+      name: hotel,
+      type: 'bar',
+      xAxisIndex: idx, yAxisIndex: idx,
+      data: rooms.map(r => ({
+        value: r.price,
+        itemStyle: {
+          color: HOTEL_COLORS[hotel] || '#d4a84b',
+          borderRadius: [0, 3, 3, 0],
+        },
+      })),
+      barWidth: '55%',
+      label: {
+        show: true, position: 'right',
+        fontSize: 9, color: textColor,
+        formatter: p => '¥' + p.value,
+      },
+    });
   });
 
-  const names = Object.keys(hotelGroups);
-  if (!names.length) return;  // 无房型数据，跳过渲染
-  const maxRoomCount = Math.max(...names.map(n => (hotelGroups[n] || []).length), 1);
-  const series = names.map((name, i) => ({
-    name: name.replace('九寨沟','').replace('酒店',''),
-    type: 'bar',
-    data: hotelGroups[name].map(r => r.price),
-    itemStyle: { color: HOTEL_COLORS[name] || '#c8963e', borderRadius:[3,3,0,0] },
-    label: { show: true, position:'top', fontSize:8, color:textColor,
-      formatter: p => hotelGroups[name][p.dataIndex].room.length > 8
-        ? hotelGroups[name][p.dataIndex].room.slice(0,8)+'…' : hotelGroups[name][p.dataIndex].room },
-    emphasis: { itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,0.5)'} },
-  }));
-
-  chart.setOption({
-    tooltip: { trigger:'axis',
-      formatter: p => {
-        const hotel = names[p[0].dataIndex];
-        const r = hotelGroups[hotel][p[0].dataIndex];
-        return '<b>' + hotel + '</b><br/>' + r.room + '<br/>¥' + r.price;
-      }
-    },
-    legend: { data: series.map(s=>s.name), textStyle:{color:textColor,fontSize:9}, top:5, type:'scroll' },
-    grid: { left:'5%', right:'5%', top:'18%', bottom:'15%' },
-    xAxis: { type:'category', data: [...Array(maxRoomCount)].map((_, i) => '#' + (i + 1)),
-      name:'房型序号', ...axisCommon },
-    yAxis: { type:'value', name:'¥', ...axisCommon },
-    series: series,
-  });
+  chart.setOption({ grid: grids, xAxis: xAxes, yAxis: yAxes, series });
 }
 
-// 图表4: 竞对价格矩阵（热力图）
+// ═══════════════════════════════════════════════════════════
+// 图表4: 竞对矩阵（分组柱状图 — P0从热力图改为柱状图）
+// ═══════════════════════════════════════════════════════════
 function renderMatrixChart(data) {
   const hotels = data.hotels || [];
-  const chart = getChartDom('chartMatrix');
-
   if (!hotels.length) return;
 
-  // 构建矩阵数据: 行=酒店, 列=价格段(最低/均价/最高/房型数)
-  const xLabels = ['最低价', '均价', '最高价', '房型数'];
-  const yLabels = hotels.map(h => h.hotel_name.replace('九寨沟','').replace('酒店',''));
-  const matrixData = [];
-  const priceMax = Math.max(...hotels.map(h => h.max_price), 1);
+  const names = hotels.map(h => HOTEL_ABBR[h.hotel_name] || h.hotel_name);
+  const fullNames = hotels.map(h => h.hotel_name);
 
-  hotels.forEach((h, yi) => {
-    matrixData.push([0, yi, h.min_price]);
-    matrixData.push([1, yi, h.avg_price]);
-    matrixData.push([2, yi, h.max_price]);
-    matrixData.push([3, yi, h.room_types]);
-  });
-
-  chart.setOption({
+  setChartOption('chartMatrix', {
     tooltip: {
+      trigger: 'axis', axisPointer: { type: 'shadow' },
       formatter: p => {
-        const h = hotels[p.data[1]];
-        const col = ['最低价','均价','最高价','房型数'][p.data[0]];
-        return '<b>' + h.hotel_name + '</b><br/>' + col + ': ' +
-          (p.data[0] === 3 ? p.data[2] + '种' : '¥' + p.data[2]);
+        let s = '<b>' + fullNames[p[0].dataIndex] + '</b><br/>';
+        p.forEach(item => {
+          s += item.marker + ' ' + item.seriesName + ': ' +
+            (item.seriesName === '房型数' ? item.value + '种' : '¥' + item.value.toLocaleString()) + '<br/>';
+        });
+        return s;
       }
     },
-    grid: { left:'18%', right:'8%', top:'6%', bottom:'8%' },
-    xAxis: { type:'category', data:xLabels, position:'top', ...axisCommon },
-    yAxis: { type:'category', data:yLabels, ...axisCommon },
-    visualMap: {
-      min: 0, max: priceMax,
-      calculable: true,
-      orient:'vertical', right:5, top:'center',
-      textStyle:{color:textColor},
-      inRange: { color: ['#0d1f3c', '#1a3a6b', '#c8963e', '#f59e0b'] }
+    legend: { data: ['最低价','均价','最高价'], textStyle: { color: textColor, fontSize: 10 }, bottom: 0 },
+    grid: { left: '5%', right: '5%', top: '8%', bottom: '14%' },
+    xAxis: {
+      type: 'category', data: names,
+      axisLabel: { color: textColor, fontSize: 11 },
+      axisLine: { lineStyle: { color: '#2a4a6d' } },
     },
-    series: [{
-      type: 'heatmap',
-      data: matrixData,
-      label: { show:true, fontSize:11, fontWeight:'bold',
-        formatter: p => p.data[0] === 3 ? p.data[2]+'种' : '¥'+p.data[2] },
-      emphasis: { itemStyle:{shadowBlur:10,shadowColor:'rgba(0,0,0,0.5)'} },
-    }]
+    yAxis: { type: 'value', name: '¥', min: 0, ...axisCommon },
+    series: [
+      {
+        name: '最低价', type: 'bar',
+        data: hotels.map(h => h.min_price),
+        itemStyle: { color: '#4da6ff', borderRadius: [4, 4, 0, 0] },
+        barGap: '15%', barWidth: '20%',
+      },
+      {
+        name: '均价', type: 'bar',
+        data: hotels.map(h => h.avg_price),
+        itemStyle: { color: '#f59e0b', borderRadius: [4, 4, 0, 0] },
+        barWidth: '20%',
+      },
+      {
+        name: '最高价', type: 'bar',
+        data: hotels.map(h => h.max_price),
+        itemStyle: { color: '#e74c3c', borderRadius: [4, 4, 0, 0] },
+        barWidth: '20%',
+        label: { show: true, position: 'top', fontSize: 9, color: textColor, formatter: '¥{c}' },
+      },
+    ],
   });
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 // 价格明细表
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 function renderTable(data) {
   let rows = [];
-  // 优先用 raw API 数据（含房型明细），否则用 hotels 摘要
   if (data.raw && data.raw.data) {
     rows = data.raw.data.map(r => ({
       hotel: r['酒店名称'],
-      star: r['星级'] || inferStar(r['酒店名称']),
+      star: inferStar(r['酒店名称']),
       room: r['房型'] || '标准房',
       platform: r['OTA平台'] || '携程',
       price: r['单价_晚'],
@@ -571,8 +989,7 @@ function renderTable(data) {
       cancel: r['可取消'] || '--',
     }));
   } else {
-    const hotels = data.hotels || [];
-    hotels.forEach(h => {
+    (data.hotels || []).forEach(h => {
       rows.push({
         hotel: h.hotel_name, star: inferStar(h.hotel_name),
         room: '最低房型', platform: '携程', price: h.min_price,
@@ -587,9 +1004,8 @@ function renderTable(data) {
     return;
   }
 
-  // 排序
+  const keys = ['hotel','star','room','platform','price','source','breakfast','cancel'];
   if (sortCol >= 0) {
-    const keys = ['hotel','star','room','platform','price','source','breakfast','cancel'];
     const key = keys[sortCol];
     rows.sort((a,b) => {
       if (typeof a[key] === 'number') return sortAsc ? a[key]-b[key] : b[key]-a[key];
@@ -597,29 +1013,31 @@ function renderTable(data) {
     });
   }
 
-  // 找出每个酒店最低价
   const hotelMins = {};
   rows.forEach(r => { if (!hotelMins[r.hotel] || r.price < hotelMins[r.hotel]) hotelMins[r.hotel] = r.price; });
 
-  const headerClick = (idx, label) =>
-    `<th onclick="sortTable(${idx})">${label} ${sortCol===idx ? (sortAsc?'▲':'▼') : ''}</th>`;
+  const headerBtn = (idx, label) =>
+    `<th><button onclick="sortTable(${idx})" aria-label="按${label}排序">${label} ${sortCol===idx ? (sortAsc?'▲':'▼') : ''}</button></th>`;
 
-  let html = `<table>
-  <thead><tr>
-    ${headerClick(0,'酒店名称')} ${headerClick(1,'星级')} ${headerClick(2,'房型')}
-    ${headerClick(3,'平台')} ${headerClick(4,'单价/晚')} ${headerClick(5,'来源')}
+  let html = `<table><thead><tr>
+    ${headerBtn(0,'酒店名称')} ${headerBtn(1,'星级')} ${headerBtn(2,'房型')}
+    ${headerBtn(3,'平台')} ${headerBtn(4,'单价/晚')} ${headerBtn(5,'来源')}
     <th>含早</th><th>取消</th><th>标记</th>
   </tr></thead><tbody>`;
+
+  const priceDrops = decisionData && decisionData.price_alerts
+    ? new Set((decisionData.price_alerts || []).map(a => a.hotel)) : new Set();
 
   rows.forEach(r => {
     const isLowest = r.price === hotelMins[r.hotel];
     const starStr = '⭐'.repeat(r.star);
+    const hasAlert = priceDrops.has(r.hotel);
     html += `<tr>
-      <td><b>${r.hotel}</b></td>
+      <td><b>${r.hotel}</b>${hasAlert ? ' <span class="badge badge-alert">降价</span>' : ''}</td>
       <td>${starStr}</td>
       <td>${r.room.length > 20 ? r.room.slice(0,20)+'…' : r.room}</td>
       <td>${r.platform}</td>
-      <td class="${isLowest ? 'price-lowest' : ''}">¥${r.price}</td>
+      <td class="${isLowest ? 'price-lowest' : ''}">${isLowest ? '🏷️ ' : ''}¥${r.price}</td>
       <td>${r.source}</td>
       <td>${r.breakfast === '是' ? '🍳' : '--'}</td>
       <td>${r.cancel === '是' ? '✅' : '--'}</td>
@@ -643,12 +1061,11 @@ function sortTable(col) {
   if (dashboardData) renderTable(dashboardData);
 }
 
-// ═══════════════════════════════════════════════════════
-// CSV导出
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
+// CSV 导出
+// ═══════════════════════════════════════════════════════════
 function exportCSV() {
   if (!dashboardData) return showToast('⚠️ 无数据可导出', 'error');
-
   let rows = [];
   if (dashboardData.raw && dashboardData.raw.data) {
     rows = dashboardData.raw.data;
@@ -658,7 +1075,6 @@ function exportCSV() {
       '单价_晚': h.min_price, '数据来源': '携程真实',
     }));
   }
-
   if (!rows.length) return showToast('⚠️ 无数据可导出', 'error');
 
   const headers = Object.keys(rows[0]);
@@ -670,7 +1086,7 @@ function exportCSV() {
     }).join(','));
   });
 
-  const blob = new Blob(['﻿' + csvLines.join('\n')], {type:'text/csv;charset=utf-8'});
+  const blob = new Blob(['﻿' + csvLines.join('\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = '九寨沟OTA价格_' + new Date().toISOString().slice(0,10) + '.csv';
@@ -679,34 +1095,37 @@ function exportCSV() {
   showToast('📥 CSV已导出', 'info');
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 // 自动刷新
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 function toggleAutoRefresh() {
   const btn = document.getElementById('autoBtn');
   if (autoTimer) {
     clearInterval(autoTimer); autoTimer = null;
     btn.textContent = '⏱ 自动刷新: 关';
-    btn.classList.remove('btn-green'); btn.classList.add('btn-outline');
+    btn.classList.add('btn-outline'); btn.classList.remove('btn-green');
     showToast('自动刷新已关闭', 'info');
   } else {
     autoTimer = setInterval(refreshAll, 60000);
     btn.textContent = '⏱ 自动刷新: 开 (60s)';
-    btn.classList.remove('btn-outline'); btn.classList.add('btn-green');
+    btn.classList.add('btn-green'); btn.classList.remove('btn-outline');
     showToast('🔁 每60秒自动刷新', 'success');
   }
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 // Toast
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 function showToast(msg, type) {
   const c = document.getElementById('toastContainer');
   const t = document.createElement('div');
   t.className = 'toast toast-' + type;
   t.textContent = msg;
   c.appendChild(t);
-  setTimeout(() => { t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 2500);
+  // 限制最多3个toast
+  const all = c.querySelectorAll('.toast');
+  if (all.length > 3) all[0].remove();
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 3000);
 }
 </script>
 </body>
